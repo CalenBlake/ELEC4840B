@@ -1,2 +1,6 @@
-/test_script.py
 *.pdf
+*.txt
+/test_script.py
+/EMODB Database/lablaut/
+/EMODB Database/labsilb/
+/EMODB Database/silb/
