@@ -6,7 +6,10 @@
 #
 # Author: Calen Blake
 # Date: 20-03-23
-# NOTE:
+# NOTE: The outputs of predicted images do not currently print in a neat grid.
+# Instead predicted output class images print in separate figure windows.
+# This may require Matplotlib version == 3.6 or it could be an issue with the
+# visualize_model() function. Investigate further.
 # -----------------------------------
 """
 from __future__ import print_function, division
