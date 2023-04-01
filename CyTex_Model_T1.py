@@ -22,6 +22,7 @@ import torch.utils.data as data
 import numpy as np
 import torchvision
 from torchvision import datasets, models, transforms
+from torchvision.utils import save_image
 import matplotlib
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib import pyplot as plt
@@ -49,7 +50,6 @@ subset = [dataset[i] for i in indices]
 matplotlib.use("TkAgg")
 # Plot the images with classes as titles
 fig, axes = plt.subplots(2, 3, figsize=(12, 6))
-plt.title('Random Sample of Input Data')
 for i, ax in enumerate(axes.flat):
     ax.imshow(subset[i][0])
     ax.set_title(dataset.classes[subset[i][1]])
@@ -62,7 +62,7 @@ plt.show()
 # Define training transforms
 train_transforms = transforms.Compose([
     transforms.ToTensor(),
-    transforms.RandomHorizontalFlip(),
+    transforms.RandomHorizontalFlip(p=0.5),
     transforms.Resize(256),
     transforms.RandomResizedCrop(224),
     # Mean and std values from ImageNet benchmark dataset
@@ -79,13 +79,51 @@ test_transforms = transforms.Compose([
 train_indices, test_indices = train_test_split(list(range(len(dataset))), test_size=0.2, random_state=42)
 train_data = data.Subset(dataset, train_indices)
 test_data = data.Subset(dataset, test_indices)
+
+# e.) save subsets in directories and reload %%%%%%%%%%
+# This will maintain the properties of a dataset. For instance, 'Subset' object has no attribute 'classes'
+# Create a new ImageFolder object for the train subset
+train_dir = "./EMODB Database/RGB_IMG/train/"
+if not os.path.exists(train_dir):
+    os.makedirs(train_dir)
+for i in range(len(train_data)):
+    image, label = train_data[i]
+    class_dir = os.path.join(train_dir, dataset.classes[label])
+    if not os.path.exists(class_dir):
+        os.makedirs(class_dir)
+    filename = f"{i}.png"
+    save_path = os.path.join(class_dir, filename)
+    save_image(image, save_path)
+
+# Create a new ImageFolder object for the test subset
+test_dir = "./EMODB Database/RGB_IMG/test/"
+if not os.path.exists(test_dir):
+    os.makedirs(test_dir)
+for i in range(len(test_data)):
+    image, label = test_data[i]
+    class_dir = os.path.join(test_dir, dataset.classes[label])
+    if not os.path.exists(class_dir):
+        os.makedirs(class_dir)
+    filename = f"{i}.png"
+    save_path = os.path.join(class_dir, filename)
+    save_image(image, save_path)
+
+# Reload the newly created training and testing datasets
+train_data = datasets.ImageFolder(train_dir, transform=transforms.ToTensor())
+# Check to see whether the classes are an attribute -> correctly saved and loaded dataset
+print(train_data.classes)
+test_data = datasets.ImageFolder(test_dir, transform=transforms.ToTensor())
+print(test_data.classes)
+
 # Apply the transforms defined above to the train and test data
 train_data.dataset.transform = train_transforms
 test_data.dataset.transform = test_transforms
 # Load train and test data using dataloader
-# Note: A dataloader wraps an iterable around the Dataset to enable easy access to the samples
+# Note: A dataloader wraps an iterable around the Dataset to enable easy access to the samples,
+# passes data through in batches of specified size
 train_loader = data.DataLoader(
     train_data,
+    # Tune batch_size later for better performance
     batch_size=batch_size,
     shuffle=True,
     num_workers=0,
@@ -94,15 +132,14 @@ train_loader = data.DataLoader(
 )
 test_loader = data.DataLoader(
     test_data,
-    batch_size=batch_size,
+    batch_size=1000,
     # Preserve original order of test samples to evaluate predictions consistently
     shuffle=False,
     num_workers=0,
-    # set pin_memory=True to enable fast data transfer to CUDA-enabled GPUs
     pin_memory=False
 )
 
-# d.) plot sample of transformed training data %%%%%%%%%%
+# e.) plot sample of transformed training data %%%%%%%%%%
 
 
 # --------------------- 2. Construct Model - ResNet50 ---------------------
