@@ -40,50 +40,54 @@ batch_size = 32
 img_height = 400
 img_width = 400
 # import full dataset -> load from folders, don't convert to tensor to enable plotting
-dataset = datasets.ImageFolder(data_dir)
+dataset = datasets.ImageFolder(data_dir, transform=transforms.ToTensor())
 
 # b.) plot sample of data %%%%%%%%%%
-# Get a random subset of images from the dataset
-indices = random.sample(range(len(dataset)), 6)
-subset = [dataset[i] for i in indices]
 # Plot to separate window and remove Matplotlib version 3.6 warnings
 matplotlib.use("TkAgg")
+
+# Get a random sample of 6 images and their classes
+indices = np.random.choice(len(dataset), size=6, replace=False)
+images = [dataset[i][0] for i in indices]
+labels = [dataset.classes[dataset[i][1]] for i in indices]
+
 # Plot the images with classes as titles
 fig, axes = plt.subplots(2, 3, figsize=(12, 6))
 for i, ax in enumerate(axes.flat):
-    ax.imshow(subset[i][0])
-    ax.set_title(dataset.classes[subset[i][1]])
-    # ax.axis('off')
+    ax.imshow(images[i].permute(1, 2, 0))
+    # ALI CHECK: Please check that the correct classes are displayed alongside the images
+    ax.set_title(f"Class: {labels[i]}")
 plt.suptitle('Random Sample of Input Data')
 plt.tight_layout()
 plt.show()
 
-# c.) separate into training and test sets and apply transforms %%%%%%%%%%
+# c.) separate into training and test sets and define transforms %%%%%%%%%%
+# split data into training and test set, 80/20 split
+train_indices, test_indices = train_test_split(list(range(len(dataset))), test_size=0.2, random_state=42)
+train_data = data.Subset(dataset, train_indices)
+test_data = data.Subset(dataset, test_indices)
+
 # Define training transforms
 train_transforms = transforms.Compose([
     transforms.ToTensor(),
     transforms.RandomHorizontalFlip(p=0.5),
-    transforms.Resize(256),
-    transforms.RandomResizedCrop(224),
+    # transforms.Resize(256),
+    # transforms.RandomResizedCrop(224),
     # Mean and std values from ImageNet benchmark dataset
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
 # Define test transforms -> No image altering
 test_transforms = transforms.Compose([
     transforms.ToTensor(),
-    transforms.Resize(256),
+    # transforms.Resize(256),
     # Mean and std values from ImageNet benchmark dataset
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
-# split data into training and test set, 80/20 split
-train_indices, test_indices = train_test_split(list(range(len(dataset))), test_size=0.2, random_state=42)
-train_data = data.Subset(dataset, train_indices)
-test_data = data.Subset(dataset, test_indices)
 
 # e.) save subsets in directories and reload %%%%%%%%%%
 # This will maintain the properties of a dataset. For instance, 'Subset' object has no attribute 'classes'
 # Create a new ImageFolder object for the train subset
-train_dir = "./EMODB Database/RGB_IMG/train/"
+train_dir = "./EMODB Database/RGB_IMG_Split/train/"
 if not os.path.exists(train_dir):
     os.makedirs(train_dir)
 for i in range(len(train_data)):
@@ -96,7 +100,7 @@ for i in range(len(train_data)):
     save_image(image, save_path)
 
 # Create a new ImageFolder object for the test subset
-test_dir = "./EMODB Database/RGB_IMG/test/"
+test_dir = "./EMODB Database/RGB_IMG_Split/test/"
 if not os.path.exists(test_dir):
     os.makedirs(test_dir)
 for i in range(len(test_data)):
@@ -109,15 +113,9 @@ for i in range(len(test_data)):
     save_image(image, save_path)
 
 # Reload the newly created training and testing datasets
-train_data = datasets.ImageFolder(train_dir, transform=transforms.ToTensor())
-# Check to see whether the classes are an attribute -> correctly saved and loaded dataset
-print(train_data.classes)
-test_data = datasets.ImageFolder(test_dir, transform=transforms.ToTensor())
-print(test_data.classes)
+train_data = datasets.ImageFolder(train_dir, transform=train_transforms)
+test_data = datasets.ImageFolder(test_dir, transform=test_transforms)
 
-# Apply the transforms defined above to the train and test data
-train_data.dataset.transform = train_transforms
-test_data.dataset.transform = test_transforms
 # Load train and test data using dataloader
 # Note: A dataloader wraps an iterable around the Dataset to enable easy access to the samples,
 # passes data through in batches of specified size
@@ -140,7 +138,17 @@ test_loader = data.DataLoader(
 )
 
 # e.) plot sample of transformed training data %%%%%%%%%%
-
+# Get a random batch of images and labels
+t_images, labels = next(iter(train_loader))
+# Plot a sample of 6 images from the batch
+fig, axs = plt.subplots(2, 3, figsize=(12, 6))
+for i, ax in enumerate(axs.flatten()):
+    ax.imshow(t_images[i].permute(1, 2, 0))
+    class_name = train_data.classes[labels[i]]
+    ax.set_title(f"Class: {class_name}")
+plt.suptitle('Random Sample of Training Data')
+plt.tight_layout()
+plt.show()
 
 # --------------------- 2. Construct Model - ResNet50 ---------------------
 # NOTE: Need to add additional layers on the output of the ResNet model from the CyTex academic paper.
