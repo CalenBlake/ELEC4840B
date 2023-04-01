@@ -43,7 +43,6 @@ if __name__ == '__main__':
             transforms.RandomResizedCrop(224),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
-            # ???: how to find mean and st-dev for normalization
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
         # Just normalization for validation
