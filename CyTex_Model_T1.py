@@ -49,7 +49,6 @@ train_transforms = transforms.Compose([
     transforms.ToTensor(),
     transforms.RandomHorizontalFlip(p=0.5),
     # transforms.Resize(256),
-    # transforms.RandomResizedCrop(224),
     # Mean and std values from ImageNet benchmark dataset
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
@@ -82,7 +81,7 @@ train_loader = data.DataLoader(
 )
 test_loader = data.DataLoader(
     test_data,
-    batch_size=1000,
+    batch_size=batch_size,
     # Preserve original order of test samples to evaluate predictions consistently
     shuffle=False,
     num_workers=0,
@@ -111,12 +110,12 @@ plt.show()
 # OLD SYNTAX: model_rn50 = models.resnet50(pretrained=True)
 model_rn50 = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
 # FREEZE Weights of the first two blocks, retrain remaining by default
-# !!!ASK ALI: Where to find these methods of models in the documentation???
-# !!!ASK ALI:
+# named_parameters() returns (str, Parameter) – Tuple containing the name and parameter
+# Documentation: https://pytorch.org/docs/stable/generated/torch.nn.Module.html
 for name, param in model_rn50.named_parameters():
     if 'layer1' in name or 'layer2' in name:
         # Uncomment to see names of layers and contents
-        # print(name)
+        print(name)
         param.requires_grad = False
 
 # Alternative weight freezing method highlighted in the following link:
@@ -140,14 +139,13 @@ print(model_rn50)
 print('--------------------')
 
 # Use sequential to add additional layers -> Same as described in Ali's paper
-# !!!ASK ALI: Get detailed summary of the function of each of the layers in the network + further research
+# !!!RESEARCH: Get detailed summary of the function of each of the layers in the network + further research
 model_rn50.fc = nn.Sequential(
     nn.Dropout(p=0.4),
     nn.Flatten(),
     nn.Linear(num_features, 4096),
     nn.BatchNorm1d(4096),
     nn.Dropout(p=0.55),
-    # !!!ASK ALI: No flatten included here?
     nn.Linear(4096, 1024),
     nn.BatchNorm1d(1024),
     # dim=1 applies the softmax operation over the first dimension of the tensor
@@ -163,6 +161,8 @@ print(model_rn50)
 print('--------------------')
 
 # Pass test tensor through model to check shape
+
+# For test tensor use a single batch of images or even a single image from CyTex set!
 input_tensor = torch.randn(batch_size, num_features)
 # Pass through model -> CURRENTLY DIMENSION ERRORS... REWORK MODEL!
 output_tensor = model_rn50(input_tensor)
