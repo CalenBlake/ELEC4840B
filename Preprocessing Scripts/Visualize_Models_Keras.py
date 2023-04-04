@@ -1,7 +1,6 @@
 """
 # -----------------------------------
-# Construction of the DCNN model using the ResNet 50 model as a baseline.
-# Transfer learning approach.
+# Plot box view of models... Poor visualization, however.
 #
 #
 # Author: Calen Blake
