@@ -131,12 +131,10 @@ print('--------------------')
 # num_features = 2048
 
 # View the architecture of the ResNet50 model
-# NOTE: Can use "from keras.utils import plot_model" to plot the model architecture
-# Alternatively: "visualkeras.layered_view(<model>)"
-print('\n--------------------')
-print('Pre-modification model architecture:')
+# print('\n--------------------')
+# print('Pre-modification model architecture:')
 # print(model_rn50)
-print('--------------------')
+# print('--------------------')
 
 # Check shape of example data
 print('\n--------------------')
@@ -165,10 +163,10 @@ model_rn50.fc = nn.Sequential(
 )
 
 # View new model architecture
-print('\n--------------------')
-print('New modified model architecture:')
+# print('\n--------------------')
+# print('New modified model architecture:')
 # print(model_rn50)
-print('--------------------')
+# print('--------------------')
 
 
 
@@ -177,29 +175,70 @@ output_tensor = model_rn50(example_data)
 print('\n--------------------')
 print('The shape of the example data, after passing through the model, is:')
 print(output_tensor.shape)
+# returns: torch.Size([32, 7]) = [batch_size, num_classes]
 print('--------------------')
-
-# Enable cuda (if available)
-# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-# model_ft = model_rn50.to(device)
 
 
 # --------------------- 3. Train & Evaluate Model ---------------------
 # Initially train for minimal epochs and check results then scale up to ~200 epochs
+# a.) Set device (Cuda or CPU) %%%%%%%%%%
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+model_rn50 = model_rn50.to(device)
 
-# Use following line to check time of each epoch iteration...
-# since = time.time()
+n_epochs = 50
+n_batches = np.ceil(len(train_dataset)/batch_size)
 
-# # train your model on the training data
-# for epoch in range(num_epochs):
-#     for images, labels in train_loader:
-#         # train your model here
-#     for images, labels in test_loader:
-#         # evaluate your model here
+# b.) Print some useful info before training
+print('\n--------------------')
+print('Total data samples: 1211')
+print('Train data samples: ', len(train_dataset))
+print('Test data samples: ', len(test_dataset))
+print(f'batch size: {batch_size:.0f} --> training batches: {n_batches:.0f}')
+print(f'epochs: {n_epochs:.0f} --> total batches: {(n_epochs*n_batches):.0f}')
+print('--------------------')
 
-# Plot the train and test loss (exp dec)
-# Plot the train and test acc (exp inc)
+# c.) Define loss function, optimizer and learning rate scheduler %%%%%%%%%%
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.SGD(model_rn50.parameters(), lr=0.001, momentum=0.9)
+exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1) # Decay LR by a factor of 0.1 every 10 epochs
+
+
+# d.) Train for n epochs of data [wrap in callable function] %%%%%%%%%%
+def train_model(model, criterion, optimizer, scheduler, num_epochs):
+    since = time.time()
+    print('-' * 10)
+    print('INITIATING MODEL TRAINING...')
+    for epoch_i in range(n_epochs):
+        print(f'Epoch {epoch_i}/{num_epochs - 1}')
+        print('-' * 10)
+        model.train()
+
+        for inputs, labels in train_loader:
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+
+            # forward
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            _, preds = torch.max(outputs, 1)
+            loss = criterion(outputs, labels)
+
+
+# e.)  %%%%%%%%%%
+train_loss = []
+test_loss = []
+train_acc = []
+test_acc = []
+
+# f.i.) Plot the train and test loss (exp dec) %%%%%%%%%%
+
+
+# f.ii.) Plot the train and test acc (exp inc) %%%%%%%%%%
+
 
 # --------------------- 4. Save Params & Visualize Results ---------------------
+# a.) Save/Load params from trained models
+# a.i.) Save trained model parameters
 
+# a.ii.) Load
 
