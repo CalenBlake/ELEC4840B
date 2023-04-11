@@ -90,16 +90,16 @@ test_loader = data.DataLoader(
 
 # e.) plot sample of transformed training data %%%%%%%%%%
 # Get a random batch of images and labels
-t_images, t_labels = next(iter(train_loader))
-# Plot a sample of 6 images from the batch
-fig, axs = plt.subplots(2, 3, figsize=(12, 6))
-for i, ax in enumerate(axs.flatten()):
-    ax.imshow(t_images[i].permute(1, 2, 0))
-    class_name = train_dataset.classes[t_labels[i]]
-    ax.set_title(f"Class: {class_name}")
-plt.suptitle('Random Sample of Training Data')
-plt.tight_layout()
-plt.show()
+# t_images, t_labels = next(iter(train_loader))
+# # Plot a sample of 6 images from the batch
+# fig, axs = plt.subplots(2, 3, figsize=(12, 6))
+# for i, ax in enumerate(axs.flatten()):
+#     ax.imshow(t_images[i].permute(1, 2, 0))
+#     class_name = train_dataset.classes[t_labels[i]]
+#     ax.set_title(f"Class: {class_name}")
+# plt.suptitle('Random Sample of Training Data')
+# plt.tight_layout()
+# plt.show()
 
 # --------------------- 2. Construct Model - ResNet50 ---------------------
 # NOTE: Need to add additional layers on the output of the ResNet model from the CyTex academic paper.
@@ -185,7 +185,7 @@ print('--------------------')
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model_rn50 = model_rn50.to(device)
 
-n_epochs = 3
+n_epochs = 5
 n_batches = np.ceil(len(train_dataset)/batch_size)
 
 # b.) Print some useful info before training
@@ -199,8 +199,8 @@ print('--------------------')
 
 # c.) Define loss function, optimizer, lr scheduler and run-time stats %%%%%%%%%%
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model_rn50.parameters(), lr=0.001, momentum=0.9)
-# Decay LR by a factor of 0.1 every 10 epochs
+optimizer = optim.SGD(model_rn50.parameters(), lr=0.1, momentum=0.1)
+# Decay LR by a factor of 0.1 every [step_size] epochs
 exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
 train_loss = []
 test_loss = []
@@ -209,8 +209,7 @@ test_acc = []
 
 
 # d.) Create callable functions for model training & testing %%%%%%%%%%
-def train_model(model, criterion, optimizer, scheduler, num_epochs):
-
+def train_model(model, criterion, optimizer, scheduler):
     model.train()
 
     running_loss = 0.0
@@ -236,43 +235,81 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs):
         scheduler.step()
         # calculate running loss and acc
         running_loss += loss.item()
-        running_corrects += torch.sum(preds == labels.data)
+        running_corrects += torch.sum(preds == labels.data).item()
         # FORWARD END ----------
     # calculate + print: loss and acc over epoch_i
     epoch_loss = running_loss / len(train_dataset)
-    epoch_acc = running_corrects / len(train_dataset)
-
+    epoch_acc = 100 * running_corrects / len(train_dataset)
+    print(f'train loss: {epoch_loss}, train acc: {epoch_acc}')
     # append epoch results to corresponding lists
     train_loss.append(epoch_loss)
     train_acc.append(epoch_acc)
 
 
+def test_model(model):
+    model.eval()
+
+    running_loss = 0.0
+    running_corrects = 0.0
+
+    with torch.no_grad():
+        for inputs, labels in test_loader:
+            inputs = inputs.to(device)
+            labels = labels.to(device)
+            # FORWARD ----------
+            outputs = model(inputs)
+            _, preds = torch.max(outputs, 1)
+            loss = criterion(outputs, labels)
+            running_loss += loss.item()
+            running_corrects += torch.sum(preds == labels.data).item()
+            # FORWARD END ----------
+        # calculate + print: loss and acc over epoch_i
+        epoch_loss = running_loss / len(test_dataset)
+        epoch_acc = 100 * running_corrects / len(test_dataset)
+        print(f'test loss: {epoch_loss}, test acc: {epoch_acc}')
+        # append epoch results to corresponding lists
+        test_loss.append(epoch_loss)
+        test_acc.append(epoch_acc)
+
+
 # e.) Execute model training and testing %%%%%%%%%%
+print('\nINITIATING MODEL TRAINING & TESTING...')
 print('-' * 10)
-print('INITIATING MODEL TRAINING & TESTING...')
 since = time.time()
 for epoch_i in range(n_epochs):
     since_epoch = time.time()
-    # Display epoch stats - TRAINING
-    print(f'Epoch {epoch_i}/{n_epochs - 1}')
-    train_model(model_rn50, criterion, optimizer, exp_lr_scheduler, n_epochs)
-    print('-' * 10)
-    # Display epoch stats - TESTING
-
+    print(f'Epoch {epoch_i + 1}/{n_epochs}')
+    # TRAINING + Display epoch stats
+    train_model(model_rn50, criterion, optimizer, exp_lr_scheduler)
+    # TESTING + Display epoch stats
+    test_model(model_rn50)
     # print time per epoch for train and test cumulative pass
     t_elapsed_epoch = time.time() - since_epoch
     print(f'Training complete in {t_elapsed_epoch // 60:.0f}m {t_elapsed_epoch % 60:.0f}s')
-
-
+    print('-' * 10)
 # Print total time of training + testing
 time_elapsed = time.time() - since
 print(f'Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
 
 # f.i.) Plot the train and test loss (exp dec) %%%%%%%%%%
-
+plt.figure()
+plt.plot(list(range(1, n_epochs+1)), train_loss, 'b')
+plt.plot(list(range(1, n_epochs+1)), test_loss, 'r')
+plt.title('Simulation Loss')
+plt.legend(['Train Loss', 'Test Loss'], loc='upper right')
+plt.xlabel('N epochs')
+plt.ylabel('Average loss')
+plt.show()
 
 # f.ii.) Plot the train and test acc (exp inc) %%%%%%%%%%
-
+plt.figure()
+plt.plot(list(range(1, n_epochs+1)), train_acc, 'b')
+plt.plot(list(range(1, n_epochs+1)), test_acc, 'r')
+plt.title('Prediction Accuracy')
+plt.legend(['Train Loss', 'Test Loss'], loc='upper right')
+plt.xlabel('N epochs')
+plt.ylabel('Model accuracy')
+plt.show()
 
 # --------------------- 4. Save Params & Visualize Results ---------------------
 # a.) Save/Load params from trained models %%%%%%%%%%
