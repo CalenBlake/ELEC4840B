@@ -90,12 +90,12 @@ test_loader = data.DataLoader(
 
 # e.) plot sample of transformed training data %%%%%%%%%%
 # Get a random batch of images and labels
-t_images, labels = next(iter(train_loader))
+t_images, t_labels = next(iter(train_loader))
 # Plot a sample of 6 images from the batch
 fig, axs = plt.subplots(2, 3, figsize=(12, 6))
 for i, ax in enumerate(axs.flatten()):
     ax.imshow(t_images[i].permute(1, 2, 0))
-    class_name = train_dataset.classes[labels[i]]
+    class_name = train_dataset.classes[t_labels[i]]
     ax.set_title(f"Class: {class_name}")
 plt.suptitle('Random Sample of Training Data')
 plt.tight_layout()
@@ -185,7 +185,7 @@ print('--------------------')
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model_rn50 = model_rn50.to(device)
 
-n_epochs = 50
+n_epochs = 3
 n_batches = np.ceil(len(train_dataset)/batch_size)
 
 # b.) Print some useful info before training
@@ -197,38 +197,76 @@ print(f'batch size: {batch_size:.0f} --> training batches: {n_batches:.0f}')
 print(f'epochs: {n_epochs:.0f} --> total batches: {(n_epochs*n_batches):.0f}')
 print('--------------------')
 
-# c.) Define loss function, optimizer and learning rate scheduler %%%%%%%%%%
+# c.) Define loss function, optimizer, lr scheduler and run-time stats %%%%%%%%%%
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model_rn50.parameters(), lr=0.001, momentum=0.9)
-exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1) # Decay LR by a factor of 0.1 every 10 epochs
-
-
-# d.) Train for n epochs of data [wrap in callable function] %%%%%%%%%%
-def train_model(model, criterion, optimizer, scheduler, num_epochs):
-    since = time.time()
-    print('-' * 10)
-    print('INITIATING MODEL TRAINING...')
-    for epoch_i in range(n_epochs):
-        print(f'Epoch {epoch_i}/{num_epochs - 1}')
-        print('-' * 10)
-        model.train()
-
-        for inputs, labels in train_loader:
-            inputs = inputs.to(device)
-            labels = labels.to(device)
-
-            # forward
-            optimizer.zero_grad()
-            outputs = model(inputs)
-            _, preds = torch.max(outputs, 1)
-            loss = criterion(outputs, labels)
-
-
-# e.)  %%%%%%%%%%
+# Decay LR by a factor of 0.1 every 10 epochs
+exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
 train_loss = []
 test_loss = []
 train_acc = []
 test_acc = []
+
+
+# d.) Create callable functions for model training & testing %%%%%%%%%%
+def train_model(model, criterion, optimizer, scheduler, num_epochs):
+
+    model.train()
+
+    running_loss = 0.0
+    running_corrects = 0.0
+
+    for inputs, labels in train_loader:
+        inputs = inputs.to(device)
+        labels = labels.to(device)
+        # FORWARD ----------
+        # zero gradients
+        optimizer.zero_grad()
+        # forward pass inputs through the model
+        outputs = model(inputs)
+        # predictions are the class with the highest prediction probability
+        _, preds = torch.max(outputs, 1)
+        # calculate the loss
+        loss = criterion(outputs, labels)
+        # back-propagate the loss
+        loss.backward()
+        # update the model parameters
+        optimizer.step()
+        # step the scheduler
+        scheduler.step()
+        # calculate running loss and acc
+        running_loss += loss.item()
+        running_corrects += torch.sum(preds == labels.data)
+        # FORWARD END ----------
+    # calculate + print: loss and acc over epoch_i
+    epoch_loss = running_loss / len(train_dataset)
+    epoch_acc = running_corrects / len(train_dataset)
+
+    # append epoch results to corresponding lists
+    train_loss.append(epoch_loss)
+    train_acc.append(epoch_acc)
+
+
+# e.) Execute model training and testing %%%%%%%%%%
+print('-' * 10)
+print('INITIATING MODEL TRAINING & TESTING...')
+since = time.time()
+for epoch_i in range(n_epochs):
+    since_epoch = time.time()
+    # Display epoch stats - TRAINING
+    print(f'Epoch {epoch_i}/{n_epochs - 1}')
+    train_model(model_rn50, criterion, optimizer, exp_lr_scheduler, n_epochs)
+    print('-' * 10)
+    # Display epoch stats - TESTING
+
+    # print time per epoch for train and test cumulative pass
+    t_elapsed_epoch = time.time() - since_epoch
+    print(f'Training complete in {t_elapsed_epoch // 60:.0f}m {t_elapsed_epoch % 60:.0f}s')
+
+
+# Print total time of training + testing
+time_elapsed = time.time() - since
+print(f'Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
 
 # f.i.) Plot the train and test loss (exp dec) %%%%%%%%%%
 
@@ -237,8 +275,10 @@ test_acc = []
 
 
 # --------------------- 4. Save Params & Visualize Results ---------------------
-# a.) Save/Load params from trained models
+# a.) Save/Load params from trained models %%%%%%%%%%
 # a.i.) Save trained model parameters
 
 # a.ii.) Load
+
+# b.) Plot confusion matrix to visualize acc on each class %%%%%%%%%%
 
