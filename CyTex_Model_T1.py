@@ -197,9 +197,9 @@ print('--------------------')
 
 # c.) Define loss function, optimizer, lr scheduler and run-time stats %%%%%%%%%%
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.SGD(model_rn50.parameters(), lr=0.1, momentum=0.1)
+optimizer = optim.Adam(model_rn50.parameters(), lr=1e-2, weight_decay=1e-5)
 # Decay LR by a factor of 0.1 every [step_size] epochs
-exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1)
+exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=12, gamma=0.01)
 train_loss = []
 test_loss = []
 train_acc = []
@@ -229,12 +229,12 @@ def train_model(model, criterion, optimizer, scheduler):
         loss.backward()
         # update the model parameters
         optimizer.step()
-        # step the scheduler
-        scheduler.step()
         # calculate running loss and acc
         running_loss += loss.item()
         running_corrects += torch.sum(preds == labels.data).item()
         # FORWARD END ----------
+    # step the scheduler on an epoch passing basis!
+    scheduler.step()
     # calculate + print: loss and acc over epoch_i
     epoch_loss = running_loss / len(train_dataset)
     epoch_acc = 100 * running_corrects / len(train_dataset)
@@ -284,13 +284,14 @@ for epoch_i in range(n_epochs):
     # print time per epoch for train and test cumulative pass
     # t_elapsed_epoch = time.time() - since_epoch
     # print(f'Training complete in {t_elapsed_epoch // 60:.0f}m {t_elapsed_epoch % 60:.0f}s')
-    # print('-' * 10)
+    print('-' * 10)
 # Print total time of training + testing
 time_elapsed = time.time() - since
 print(f'Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
 print('-' * 10)
 print()
 
+"""
 # f.i.) Plot the train and test loss (exp dec) %%%%%%%%%%
 plt.figure()
 plt.plot(list(range(1, n_epochs+1)), train_loss, 'b')
@@ -313,14 +314,15 @@ plt.xlabel('N epochs')
 plt.ylabel('Model accuracy (%)')
 plt.grid()
 plt.tight_layout()
-plt.show()
+plt.show()"""
+
 
 # --------------------- 4. Save & Load Params Visualize Results ---------------------
 # b.) Save trained model parameters %%%%%%%%%%
 timestamp = datetime.datetime.now().strftime("%d-%m__%H-%M")
 filename = f"model_params_{timestamp}.pt"
 torch.save(model_rn50.state_dict(), f'RN50 - Saved Params/{filename}')
-
+"""
 # c.) Load trained model parameters %%%%%%%%%%
 model = model_rn50
 load_file = f'RN50 - Saved Params/model_params_12-04__15-48.pt'
@@ -348,3 +350,4 @@ true_classes = np.concatenate(true_classes)
 # disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=test_dataset.classes)
 # disp.plot()
 # plt.show()
+"""
