@@ -22,15 +22,13 @@ import torch.backends.cudnn as cudnn
 import numpy as np
 import torchvision
 from torchvision import datasets, models, transforms
-from keras.utils import plot_model
-import visualkeras
 from torchvision.utils import save_image
 import matplotlib
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib import pyplot as plt
-from sklearn.model_selection import train_test_split
 import time
-import random
+import datetime
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 import os
 
 # --------------------- 1. Load & Preprocess Data ---------------------
@@ -182,10 +180,10 @@ print('--------------------')
 # --------------------- 3. Train & Evaluate Model ---------------------
 # Initially train for minimal epochs and check results then scale up to ~200 epochs
 # a.) Set device (Cuda or CPU) %%%%%%%%%%
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model_rn50 = model_rn50.to(device)
 
-n_epochs = 5
+n_epochs = 50
 n_batches = np.ceil(len(train_dataset)/batch_size)
 
 # b.) Print some useful info before training
@@ -201,7 +199,7 @@ print('--------------------')
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.SGD(model_rn50.parameters(), lr=0.1, momentum=0.1)
 # Decay LR by a factor of 0.1 every [step_size] epochs
-exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
+exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1)
 train_loss = []
 test_loss = []
 train_acc = []
@@ -277,19 +275,21 @@ print('\nINITIATING MODEL TRAINING & TESTING...')
 print('-' * 10)
 since = time.time()
 for epoch_i in range(n_epochs):
-    since_epoch = time.time()
+    # since_epoch = time.time()
     print(f'Epoch {epoch_i + 1}/{n_epochs}')
     # TRAINING + Display epoch stats
     train_model(model_rn50, criterion, optimizer, exp_lr_scheduler)
     # TESTING + Display epoch stats
     test_model(model_rn50)
     # print time per epoch for train and test cumulative pass
-    t_elapsed_epoch = time.time() - since_epoch
-    print(f'Training complete in {t_elapsed_epoch // 60:.0f}m {t_elapsed_epoch % 60:.0f}s')
-    print('-' * 10)
+    # t_elapsed_epoch = time.time() - since_epoch
+    # print(f'Training complete in {t_elapsed_epoch // 60:.0f}m {t_elapsed_epoch % 60:.0f}s')
+    # print('-' * 10)
 # Print total time of training + testing
 time_elapsed = time.time() - since
 print(f'Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
+print('-' * 10)
+print()
 
 # f.i.) Plot the train and test loss (exp dec) %%%%%%%%%%
 plt.figure()
@@ -299,6 +299,8 @@ plt.title('Simulation Loss')
 plt.legend(['Train Loss', 'Test Loss'], loc='upper right')
 plt.xlabel('N epochs')
 plt.ylabel('Average loss')
+plt.grid()
+plt.tight_layout()
 plt.show()
 
 # f.ii.) Plot the train and test acc (exp inc) %%%%%%%%%%
@@ -306,16 +308,43 @@ plt.figure()
 plt.plot(list(range(1, n_epochs+1)), train_acc, 'b')
 plt.plot(list(range(1, n_epochs+1)), test_acc, 'r')
 plt.title('Prediction Accuracy')
-plt.legend(['Train Loss', 'Test Loss'], loc='upper right')
+plt.legend(['Train Acc', 'Test Acc'], loc='upper right')
 plt.xlabel('N epochs')
-plt.ylabel('Model accuracy')
+plt.ylabel('Model accuracy (%)')
+plt.grid()
+plt.tight_layout()
 plt.show()
 
-# --------------------- 4. Save Params & Visualize Results ---------------------
-# a.) Save/Load params from trained models %%%%%%%%%%
-# a.i.) Save trained model parameters
+# --------------------- 4. Save & Load Params Visualize Results ---------------------
+# b.) Save trained model parameters %%%%%%%%%%
+timestamp = datetime.datetime.now().strftime("%d-%m__%H-%M")
+filename = f"model_params_{timestamp}.pt"
+torch.save(model_rn50.state_dict(), f'RN50 - Saved Params/{filename}')
 
-# a.ii.) Load
+# c.) Load trained model parameters %%%%%%%%%%
+model = model_rn50
+load_file = f'RN50 - Saved Params/model_params_12-04__15-48.pt'
+model.load_state_dict(torch.load(load_file))
+
+# --------------------- 5. Test Model & Visualize Results ---------------------
+predictions = []
+true_classes = []
+# a.) Pass test data through the trained model %%%%%%%%%%
+model.eval()
+with torch.no_grad():
+    for images, labels in test_loader:
+        inputs = inputs.to(device)
+        labels = labels.to(device)
+        outputs = model(inputs)
+        _, preds = torch.max(outputs, 1)
+        predictions.append(preds.cpu().numpy())
+        true_classes.append(labels.cpu().numpy())
+
+predictions = np.concatenate(predictions)
+true_classes = np.concatenate(true_classes)
 
 # b.) Plot confusion matrix to visualize acc on each class %%%%%%%%%%
-
+# cm = confusion_matrix(true_classes, predictions, labels=test_dataset.classes)
+# disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=test_dataset.classes)
+# disp.plot()
+# plt.show()
