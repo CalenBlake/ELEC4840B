@@ -197,9 +197,9 @@ print('--------------------')
 
 # c.) Define loss function, optimizer, lr scheduler and run-time stats %%%%%%%%%%
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model_rn50.parameters(), lr=1e-2, weight_decay=1e-5)
+optimizer = optim.Adam(model_rn50.parameters(), lr=1e-3, weight_decay=1e-5)
 # Decay LR by a factor of 0.1 every [step_size] epochs
-exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=12, gamma=0.01)
+exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1)
 train_loss = []
 test_loss = []
 train_acc = []
@@ -207,7 +207,7 @@ test_acc = []
 
 
 # d.) Create callable functions for model training & testing %%%%%%%%%%
-def train_model(model, criterion, optimizer, scheduler):
+def train_model(model, criterion, optimizer):
     model.train()
 
     running_loss = 0.0
@@ -233,8 +233,6 @@ def train_model(model, criterion, optimizer, scheduler):
         running_loss += loss.item()
         running_corrects += torch.sum(preds == labels.data).item()
         # FORWARD END ----------
-    # step the scheduler on an epoch passing basis!
-    scheduler.step()
     # calculate + print: loss and acc over epoch_i
     epoch_loss = running_loss / len(train_dataset)
     epoch_acc = 100 * running_corrects / len(train_dataset)
@@ -275,15 +273,13 @@ print('\nINITIATING MODEL TRAINING & TESTING...')
 print('-' * 10)
 since = time.time()
 for epoch_i in range(n_epochs):
-    # since_epoch = time.time()
     print(f'Epoch {epoch_i + 1}/{n_epochs}')
     # TRAINING + Display epoch stats
-    train_model(model_rn50, criterion, optimizer, exp_lr_scheduler)
+    train_model(model_rn50, criterion, optimizer)
     # TESTING + Display epoch stats
     test_model(model_rn50)
-    # print time per epoch for train and test cumulative pass
-    # t_elapsed_epoch = time.time() - since_epoch
-    # print(f'Training complete in {t_elapsed_epoch // 60:.0f}m {t_elapsed_epoch % 60:.0f}s')
+    # step the scheduler on an epoch passing basis!
+    exp_lr_scheduler.step()
     print('-' * 10)
 # Print total time of training + testing
 time_elapsed = time.time() - since
@@ -291,38 +287,37 @@ print(f'Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s'
 print('-' * 10)
 print()
 
-"""
+
 # f.i.) Plot the train and test loss (exp dec) %%%%%%%%%%
-plt.figure()
-plt.plot(list(range(1, n_epochs+1)), train_loss, 'b')
-plt.plot(list(range(1, n_epochs+1)), test_loss, 'r')
-plt.title('Simulation Loss')
-plt.legend(['Train Loss', 'Test Loss'], loc='upper right')
-plt.xlabel('N epochs')
-plt.ylabel('Average loss')
-plt.grid()
+fig, (ax1, ax2) = plt.subplots(1, 2)
+
+ax1.plot(list(range(1, n_epochs+1)), train_loss, 'b')
+ax1.plot(list(range(1, n_epochs+1)), test_loss, 'r')
+ax1.set_title('Simulation Loss')
+ax1.legend(['Train Loss', 'Test Loss'], loc='upper right')
+ax1.set_xlabel('N epochs')
+ax1.set_ylabel('Average loss')
+ax1.grid()
+
+# f.ii.) Plot the train and test acc (exp inc) %%%%%%%%%%
+ax2.plot(list(range(1, n_epochs+1)), train_acc, 'b')
+ax2.plot(list(range(1, n_epochs+1)), test_acc, 'r')
+ax2.set_title('Prediction Accuracy')
+ax2.legend(['Train Acc', 'Test Acc'], loc='upper right')
+ax2.set_xlabel('N epochs')
+ax2.set_ylabel('Model accuracy (%)')
+ax2.grid()
+
 plt.tight_layout()
 plt.show()
 
-# f.ii.) Plot the train and test acc (exp inc) %%%%%%%%%%
-plt.figure()
-plt.plot(list(range(1, n_epochs+1)), train_acc, 'b')
-plt.plot(list(range(1, n_epochs+1)), test_acc, 'r')
-plt.title('Prediction Accuracy')
-plt.legend(['Train Acc', 'Test Acc'], loc='upper right')
-plt.xlabel('N epochs')
-plt.ylabel('Model accuracy (%)')
-plt.grid()
-plt.tight_layout()
-plt.show()"""
-
-
+"""
 # --------------------- 4. Save & Load Params Visualize Results ---------------------
 # b.) Save trained model parameters %%%%%%%%%%
 timestamp = datetime.datetime.now().strftime("%d-%m__%H-%M")
 filename = f"model_params_{timestamp}.pt"
 torch.save(model_rn50.state_dict(), f'RN50 - Saved Params/{filename}')
-"""
+
 # c.) Load trained model parameters %%%%%%%%%%
 model = model_rn50
 load_file = f'RN50 - Saved Params/model_params_12-04__15-48.pt'
