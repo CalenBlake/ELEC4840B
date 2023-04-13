@@ -183,7 +183,7 @@ print('--------------------')
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model_rn50 = model_rn50.to(device)
 
-n_epochs = 50
+n_epochs = 60
 n_batches = np.ceil(len(train_dataset)/batch_size)
 
 # b.) Print some useful info before training
@@ -199,7 +199,7 @@ print('--------------------')
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model_rn50.parameters(), lr=1e-3, weight_decay=1e-5)
 # Decay LR by a factor of 0.1 every [step_size] epochs
-exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=15, gamma=0.1)
+exp_lr_scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=[30, 40, 50, 55], gamma=0.01)
 train_loss = []
 test_loss = []
 train_acc = []
