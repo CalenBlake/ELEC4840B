@@ -197,7 +197,7 @@ print('--------------------')
 
 # c.) Define loss function, optimizer, lr scheduler and run-time stats %%%%%%%%%%
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model_rn50.parameters(), lr=1e-3, weight_decay=1e-5)
+optimizer = optim.Adam(model_rn50.parameters(), lr=1e-2, weight_decay=1e-5)
 # Decay LR by a factor of 0.1 every [step_size] epochs
 exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=12, gamma=0.01)
 train_loss = []
@@ -233,8 +233,8 @@ def train_model(model, criterion, optimizer, scheduler):
         running_loss += loss.item()
         running_corrects += torch.sum(preds == labels.data).item()
         # FORWARD END ----------
-    # step the scheduler on an epoch passing basis! UNCOMMENT:
-    # scheduler.step()
+    # step the scheduler on an epoch passing basis!
+    scheduler.step()
     # calculate + print: loss and acc over epoch_i
     epoch_loss = running_loss / len(train_dataset)
     epoch_acc = 100 * running_corrects / len(train_dataset)
@@ -321,7 +321,7 @@ plt.show()"""
 # b.) Save trained model parameters %%%%%%%%%%
 timestamp = datetime.datetime.now().strftime("%d-%m__%H-%M")
 filename = f"model_params_{timestamp}.pt"
-torch.save(model_rn50.state_dict(), f'rn50 saved params/{filename}')
+torch.save(model_rn50.state_dict(), f'RN50 - Saved Params/{filename}')
 """
 # c.) Load trained model parameters %%%%%%%%%%
 model = model_rn50
