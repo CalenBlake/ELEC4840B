@@ -7,7 +7,8 @@
 #
 # Author: Calen Blake
 # Date: 16-05-23
-# NOTE:
+# NOTE: DO NOT RUN THIS SCRIPT MORE THAN ONCE!
+# WILL CAUSE ISSUES WITH RENAMING OF FILES
 # -----------------------------------
 """
 
@@ -23,26 +24,19 @@ import glob
 # Can afford to get rid of the first two as all identical
 # i.e. all audio-only (03) and all speech (01)
 
-# --------------------- 1. Load Dataset ---------------------
+# --------------------- 1. Initial Preprocessing ---------------------
 data_dir = '/Users/c3283313/PycharmProjects/ELEC4840B-Programming/RAVDESS/'
+output_dir = '/Users/c3283313/PycharmProjects/ELEC4840B-Programming/RAVDESS_Refactored/'
 os.chdir(data_dir)
-list_of_files=[]
+list_of_files = []
+modified_files = []
 
 # Loop through folders of actors
 for folder in glob.glob("*"):
-    # change directory and append files to list
+    # change directory to each sub-folder, then rename and save
     os.chdir(data_dir+folder)
     for file in glob.glob('*.wav'):
-        print(file)
-        list_of_files.append(file)
+        new_file_name = file[6:]
+        os.rename(file, output_dir+new_file_name)
 
-# --------------------- 2. Refactor ---------------------
-# a.) Rename files, removing first 6 characters and append emotion code
-# for i in range(len(list_of_files)):
-#     Temp=[]
-#     print(i)
-#     Input_filename=list_of_files[i]
-#     print(Input_filename)
-
-# b.)
 
