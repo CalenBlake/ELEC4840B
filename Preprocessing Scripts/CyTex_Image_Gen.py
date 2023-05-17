@@ -52,6 +52,7 @@ output_dir = '/Users/c3283313/PycharmProjects/ELEC4840B-Programming/EMODB Databa
 
 list_of_files=[]
 Labels=[]
+# ***emotion list inst -> what does l stand for?
 t_l = []
 n_l = []
 f_l = []
@@ -63,6 +64,7 @@ t = f = a = w = 0
 n = e = l = 0
 history = []
 
+# ***emotion list inst -> what does h stand for?
 t_h = []
 n_h = []
 f_h = []
