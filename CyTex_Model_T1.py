@@ -1,7 +1,7 @@
 """
 # -----------------------------------
 # Construction of the DCNN model using the ResNet 50 model as a baseline.
-# Transfer learning approach.
+# Transfer learning approach. For analysing EMODB database.
 #
 #
 # Author: Calen Blake
