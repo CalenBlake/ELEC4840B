@@ -7,8 +7,8 @@
 # Author: Calen Blake
 # Date: 01-04-23
 # NOTE: This script should later be divided into separate modules.
-# i.e. model, main, save_params, load_params, test model... as was done in other research papers (see TIM_Net)
-# Or as was done in ENGG3300!
+#       i.e. model, main, save_params, load_params, test model... as was done in other research papers (see TIM_Net)
+#       Or as was done in ENGG3300!
 # -----------------------------------
 """
 
