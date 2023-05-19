@@ -317,15 +317,15 @@ plt.tight_layout()
 plt.show()"""
 
 
-# --------------------- 4. Save & Load Params Visualize Results ---------------------
-# b.) Save trained model parameters %%%%%%%%%%
+# --------------------- 4. Save & Load Params ---------------------
+# a.) Save trained model parameters %%%%%%%%%%
 timestamp = datetime.datetime.now().strftime("%d-%m__%H-%M")
 filename = f"model_params_{timestamp}.pt"
-torch.save(model_rn50.state_dict(), f'RN50 - Saved Params/{filename}')
+torch.save(model_rn50.state_dict(), f'rn50 saved params - EMODB/{filename}')
 """
-# c.) Load trained model parameters %%%%%%%%%%
+# b.) Load trained model parameters %%%%%%%%%%
 model = model_rn50
-load_file = f'RN50 - Saved Params/model_params_12-04__15-48.pt'
+load_file = f'rn50 saved params - EMODB/model_params_12-04__15-48.pt'
 model.load_state_dict(torch.load(load_file))
 
 # --------------------- 5. Test Model & Visualize Results ---------------------
