@@ -33,13 +33,10 @@ f_l = []
 # neutral, calm, happy, sad (unhappy), angry, fearful, disgust, surprised
 n = c = h = u = a = f = d = s = 0
 
-# *** arbitrary counter, what is use other than counting total number of CyTex imgs generated?
+# counter for counting total number of CyTex imgs generated
 cnt = 0
 
-# Don't need to output as csv, can create default histogram
-# this is just to test other stats
-
-# *** UNCOMMENT AND EDIT TO PRODUCE HISTOGRAM OF IMG COUNT PER EMOTION
+# UNCOMMENT AND EDIT TO PRODUCE HISTOGRAM OF IMG COUNT PER EMOTION
 # def save_hist(pitch_hist, emo):
 #     with open('/home/ali/pitch_hist_{}.csv'.format(emo), 'w') as f:
 #         write = csv.writer(f)
@@ -80,9 +77,7 @@ for i in range(len(list_of_files)):
             # avoid overlap by setting n_step to ZERO!
             # overlap = n_step/new_sr
             n_step = 8000
-        # *** CHANGE FRAME LENGTH (SMALLER)
         # each second has 16000 samples
-        #
         m_frame = signal[step - 16000 - n_step: st * step + n_step, ]
         # note that 160 = 16000/100 => 10ms window... change parma to change frame width
         for j in range(1, 1 + int(len(m_frame) / 160)):
@@ -100,7 +95,6 @@ for i in range(len(list_of_files)):
 
             # Find the index of the maximum frequency correspond to the magnitudes above a pre-defind thereshold
             index = mag_m.argmax()
-            # %%
             mag_max = mag_m[index]
             if mag_max >= 0:
                 pitch_m = pitch_m[index]
@@ -110,8 +104,8 @@ for i in range(len(list_of_files)):
                 f_pitch.append(pitch_m)
                 f_period.append(int(new_sr / pitch_m))  # the period of each frame in samples
                 f_mag.append(mag_m)
-                # *** Original script uses Input_filename[5] which is the position of emotion
-                # note that f_l was only used for statistics collection => can remove
+                # EMODB script uses Input_filename[5], (position of emotion in encoding)
+                # f_l only used for statistics collection => can remove
                 f_l.append([pitch_m, mag_max, Input_filename[1]])
 
                 # Number Of Rows each speech frame construct in the final image
@@ -136,7 +130,6 @@ for i in range(len(list_of_files)):
             for jt in range(len(IMG[it])):
                 IMG_F[it][jt] = IMG[it][jt]
 
-        # *** Check what these three lines are implementing!
         # convert list to matrix
         IMG_F = np.array(IMG_F)
         # normalize pixel values
@@ -147,17 +140,17 @@ for i in range(len(list_of_files)):
         IMG_F = np.power(IMG_F, 3)
         img0 = IMG_F
 
-        # *** COMMENTED LINES ARE UNUSED TRANSFORMS IN FINAL OUTPUT
+        # UNUSED TRANSFORMS: Can experiment with this information encoding in excess channels
         # fd_img1 = gaussian_filter(img0, sigma=3)
         # sd_img1 = laplace(img0)
-        # *** DOUBLE CHECK! returns first and second order gradients
-        fd_img = np.gradient(img0)
-
         # sd_img = np.gradient(img0, 2)
+
+        # returns first and second order gradients (returned gradient has same shape as input array)
+        fd_img = np.gradient(img0)
 
         # Code values of each channel of the image, incorporate the gradients found above
         img = np.zeros([len(img0), 400, 3], dtype='uint8')
-        # MAP PIXEL VALUES TO [0, 255]
+        # map pixel values to [0, 255]
         img[:, :, 0] = img0 * 255
         img[:, :, 1] = fd_img[0] * 255
         img[:, :, 2] = fd_img[1] * 255
@@ -201,5 +194,3 @@ for i in range(len(list_of_files)):
         else:
             img.save(output_dir + 'Neutral/image{}.png'.format(n))
             n += 1
-        # *** close plot here is redundant??? What is its purpose?
-        # plt.close()
