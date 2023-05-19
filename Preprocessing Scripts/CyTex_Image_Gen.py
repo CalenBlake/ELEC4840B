@@ -65,6 +65,7 @@ n = e = l = 0
 history = []
 
 # ***emotion list inst -> what does h stand for?
+# These lists ARE redundant, can be removed
 t_h = []
 n_h = []
 f_h = []
