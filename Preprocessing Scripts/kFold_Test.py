@@ -42,11 +42,10 @@ dataset_test = datasets.ImageFolder(data_dir, transform=test_transforms)
 
 # c.) testing subset method %%%%%%%%%%
 # x = dataset.imgs    # directory paths to images
-sub_d = data.Subset(dataset, range(int(len(dataset)/2)))
-sub_d2 = data.Subset(dataset, [0, 1, 2])
+# sub_d = data.Subset(dataset, range(int(len(dataset)/2)))
+# sub_d2 = data.Subset(dataset, [0, 1, 2])
 
 # d.) create k-fold splits %%%%%%%%%%
-indices = np.array(dataset.targets)
 y = dataset.targets     # list of labels
 k = 5
 skf = StratifiedKFold(n_splits=k, shuffle=True, random_state=42)
@@ -56,7 +55,7 @@ splits = skf.split(range(len(y)), y)
 
 # e.) split data into different folds and alternate %%%%%%%%%%
 # Setup dummy var x (only used for length, not value)
-x = np.zeros(len(indices))
+x = np.zeros(len(y))
 # generate split indices and print to test if it works! -> commented out right now
 for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
     print(f"Training on fold {fold + 1}/{k}")
