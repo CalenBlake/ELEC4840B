@@ -36,5 +36,3 @@ for train_index, test_index in splits:
     X_train, X_test = [dataset[i][0] for i in train_index], [dataset[i][0] for i in test_index]
     y_train, y_test = [y[i] for i in train_index], [y[i] for i in test_index]
 
-
-
