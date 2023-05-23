@@ -218,6 +218,8 @@ print()
 
 # f.i.) Plot the train and test loss (exp dec) %%%%%%%%%%
 plt.figure()
+
+plt.subplot(1, 2, 1)
 plt.plot(list(range(1, n_epochs+1)), train_loss, 'b')
 plt.plot(list(range(1, n_epochs+1)), test_loss, 'r')
 plt.title('Simulation Loss')
@@ -225,11 +227,9 @@ plt.legend(['Train Loss', 'Test Loss'], loc='upper right')
 plt.xlabel('N epochs')
 plt.ylabel('Average loss')
 plt.grid()
-plt.tight_layout()
-plt.show()
 
 # f.ii.) Plot the train and test acc (exp inc) %%%%%%%%%%
-plt.figure()
+plt.subplot(1, 2, 2)
 plt.plot(list(range(1, n_epochs+1)), train_acc, 'b')
 plt.plot(list(range(1, n_epochs+1)), test_acc, 'r')
 plt.title('Prediction Accuracy')
@@ -237,6 +237,7 @@ plt.legend(['Train Acc', 'Test Acc'], loc='upper right')
 plt.xlabel('N epochs')
 plt.ylabel('Model accuracy (%)')
 plt.grid()
+
 plt.tight_layout()
 plt.show()
 
