@@ -30,6 +30,7 @@ import time
 import datetime
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 import os
+from sklearn.model_selection import StratifiedKFold
 
 # --------------------- 1. Load & Preprocess Data ---------------------
 # NOTE: Will need to sort data into training and test sets. Check how this was done in ENGG3300.
@@ -234,7 +235,7 @@ def train_model(model, criterion, optimizer, scheduler):
         running_corrects += torch.sum(preds == labels.data).item()
         # FORWARD END ----------
     # step the scheduler on an epoch passing basis!
-    scheduler.step()
+    # scheduler.step()
     # calculate + print: loss and acc over epoch_i
     epoch_loss = running_loss / len(train_dataset)
     epoch_acc = 100 * running_corrects / len(train_dataset)

@@ -54,7 +54,7 @@ plt.suptitle('Random Sample of Input Data')
 plt.tight_layout()
 plt.show()
 
-# c.) separate into training and test sets and define transforms %%%%%%%%%%
+# c.) separate into training and test sets %%%%%%%%%%
 # split data into training and test set, 80/20 split
 train_indices, test_indices = train_test_split(list(range(len(dataset))), test_size=0.2, random_state=42)
 train_data = data.Subset(dataset, train_indices)
