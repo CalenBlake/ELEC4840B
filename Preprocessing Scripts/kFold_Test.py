@@ -19,20 +19,48 @@ import random
 import os
 from sklearn.model_selection import StratifiedKFold
 
-# a.) load data %%%%%%%%%%
-data_dir = '../EMODB Database/RGB_IMG/'
-dataset = datasets.ImageFolder(data_dir, transform=transforms.ToTensor())
+# a.) define transforms %%%%%%%%%%
+# Define training transforms
+train_transforms = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.RandomHorizontalFlip(p=0.5),
+    # Mean and std values from ImageNet benchmark dataset
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+])
+# Define test transforms -> No image altering
+test_transforms = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+])
 
-# b.) testing subset method %%%%%%%%%%
-x = dataset.imgs    # directory paths to images
+# b.) load data %%%%%%%%%%
+data_dir = '../EMODB Database/RGB_IMG/'
+dataset = datasets.ImageFolder(data_dir)
+# only known way to apply transforms independently!!!
+dataset_train = datasets.ImageFolder(data_dir, transform=train_transforms)
+dataset_test = datasets.ImageFolder(data_dir, transform=test_transforms)
+
+# c.) testing subset method %%%%%%%%%%
+# x = dataset.imgs    # directory paths to images
 sub_d = data.Subset(dataset, range(int(len(dataset)/2)))
 sub_d2 = data.Subset(dataset, [0, 1, 2])
 
-# c.) create k-fold splits %%%%%%%%%%
+# d.) create k-fold splits %%%%%%%%%%
+indices = np.array(dataset.targets)
 y = dataset.targets     # list of labels
-skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+k = 5
+skf = StratifiedKFold(n_splits=k, shuffle=True, random_state=42)
 splits = skf.split(range(len(y)), y)
-for train_index, test_index in splits:
-    X_train, X_test = [dataset[i][0] for i in train_index], [dataset[i][0] for i in test_index]
-    y_train, y_test = [y[i] for i in train_index], [y[i] for i in test_index]
+
+
+
+# e.) split data into different folds and alternate %%%%%%%%%%
+# Setup dummy var x (only used for length, not value)
+x = np.zeros(len(indices))
+# generate split indices and print to test if it works! -> commented out right now
+for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
+    print(f"Training on fold {fold + 1}/{k}")
+    # print(test_indices)
+    train_dataset = data.Subset(dataset_train, train_indices)
+    test_dataset = data.Subset(dataset_test, test_indices)
 

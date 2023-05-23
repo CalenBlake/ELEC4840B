@@ -59,11 +59,10 @@ test_transforms = transforms.Compose([
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
 
-# Load train and test datasets
-train_dir = "./EMODB Database/RGB_IMG_Split/train/"
-test_dir = "./EMODB Database/RGB_IMG_Split/test/"
+# Load whole dataset
+data_dir = "./EMODB Database/RGB_IMG/"
 # Reload the newly created training and testing datasets, applying transforms
-train_dataset = datasets.ImageFolder(train_dir, transform=train_transforms)
+dataset = datasets.ImageFolder(train_dir, transform=train_transforms)
 test_dataset = datasets.ImageFolder(test_dir, transform=test_transforms)
 
 # Load train and test data using dataloader
@@ -74,17 +73,15 @@ train_loader = data.DataLoader(
     # Tune batch_size later for better performance
     batch_size=batch_size,
     shuffle=True,
-    num_workers=0,
     # set pin_memory=True to enable fast data transfer to CUDA-enabled GPUs
-    pin_memory=False
+    pin_memory=True
 )
 test_loader = data.DataLoader(
     test_dataset,
     batch_size=batch_size,
     # Preserve original order of test samples to evaluate predictions consistently
     shuffle=False,
-    num_workers=0,
-    pin_memory=False
+    pin_memory=True
 )
 
 # e.) plot sample of transformed training data %%%%%%%%%%
