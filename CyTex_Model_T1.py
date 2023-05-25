@@ -161,7 +161,7 @@ model_rn.fc = nn.Sequential(
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model_rn = model_rn.to(device)
 
-n_epochs = 20
+n_epochs = 1
 n_batches = np.ceil(len(train_dataset_imf)/batch_size)
 
 # b.) Print some useful info before training
@@ -244,7 +244,7 @@ def test_model(model):
         test_acc.append(epoch_acc)
 
 # e.) Employ stratified k-fold splitting and loop
-k = 5
+k = 1
 # set list of labels/targets and dummy var x
 # ***CHECK: y should be identical for train and test datasets due to the same loading procedure and organisation
 y = train_dataset_imf.targets
@@ -265,8 +265,8 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
     test_loss = []
     train_acc = []
     test_acc = []
-    train_dataset = data.Subset(train_dataset, train_indices)
-    test_dataset = data.Subset(test_dataset, test_indices)
+    train_dataset = data.Subset(train_dataset_imf, train_indices)
+    test_dataset = data.Subset(test_dataset_imf, test_indices)
     # Load train and test data using dataloader
     train_loader = data.DataLoader(
         train_dataset, batch_size=batch_size, shuffle=True, pin_memory=True
@@ -299,6 +299,11 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
     kf_acc.append(test_acc[-1])
     kf_loss.append(test_loss[-1])
 
+# Print stats of each fold to console:
+print('K-FOLD RESULTS:')
+print(f'accuracies of each of the folds (1 - {k}): {kf_acc}')
+print('-' * 10)
+
 # *** MOVE PLOTTING INSIDE THE K-FOLD LOOP!
 # g.i.) Plot the train and test loss (exp dec) %%%%%%%%%%
 # plt.figure()
@@ -328,9 +333,9 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
 
 # --------------------- 4. Save & Load Params ---------------------
 # a.) Save trained model parameters %%%%%%%%%%
-timestamp = datetime.datetime.now().strftime("%d-%m__%H-%M")
-filename = f"model_params_{timestamp}.pt"
-torch.save(model_rn.state_dict(), f'rn50 saved params - EMODB/{filename}')
+# timestamp = datetime.datetime.now().strftime("%d-%m__%H-%M")
+# filename = f"model_params_{timestamp}.pt"
+# torch.save(model_rn.state_dict(), f'rn50 saved params - EMODB/{filename}')
 """
 # b.) Load trained model parameters %%%%%%%%%%
 model = model_rn
