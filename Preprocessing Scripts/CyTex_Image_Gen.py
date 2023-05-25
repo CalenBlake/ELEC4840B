@@ -48,7 +48,7 @@ os.getcwd() returns the following value:
 
 
 dataset_dir = '/Users/c3283313/PycharmProjects/ELEC4840B-Programming/EMODB Database/'
-output_dir = '/Users/c3283313/PycharmProjects/ELEC4840B-Programming/EMODB Database/RGB_IMG/'
+output_dir = '/Users/c3283313/PycharmProjects/ELEC4840B-Programming/EMODB Database/RGB_IMG_noOverlap/'
 
 list_of_files=[]
 Labels=[]
@@ -114,7 +114,8 @@ for i in range(len(list_of_files)):
             n_step = 0
         else:
             st = 1
-            n_step = 8000
+            # overlap = n_step/new_sr = n_step/16000 (%)
+            n_step = 0
         m_frame = signal[step - 16000 - n_step: st * step + n_step, ]
         for j in range(1, 1 + int(len(m_frame) / 160)):
             step = j * 160  # With the sampling rate of 16khz, 160 samples represent a 10ms frame
