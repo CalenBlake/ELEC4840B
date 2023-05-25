@@ -76,10 +76,10 @@ for i in range(len(list_of_files)):
             st = 1
             # avoid overlap by setting n_step to ZERO!
             # overlap = n_step/new_sr
-            n_step = 8000
+            n_step = 0
         # each second has 16000 samples
         m_frame = signal[step - 16000 - n_step: st * step + n_step, ]
-        # note that 160 = 16000/100 => 10ms window... change parma to change frame width
+        # note that 160 = 16000/100 => 10ms window... change param to change frame width
         for j in range(1, 1 + int(len(m_frame) / 160)):
             step = j * 160
             # With the sampling rate of 16khz, 160 samples represent a 10ms frame
