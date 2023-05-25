@@ -175,7 +175,7 @@ print('--------------------')
 
 # c.) Define loss function, optimizer, lr scheduler and run-time stats %%%%%%%%%%
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model_rn.parameters(), lr=1e-2, weight_decay=1e-5)
+optimizer = optim.Adam(model_rn.parameters(), lr=1e-3, weight_decay=1e-5)
 # Decay LR by a factor of 0.1 every [step_size] epochs
 exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=12, gamma=0.01)
 
