@@ -353,7 +353,7 @@ plt.plot(list(range(1, (k*n_epochs)+1)), total_test_acc, 'r', label='Test Acc')
 ax = plt.gca()      # get current axis
 ax.set_ylim([0, 102])
 plt.title('Prediction Accuracy')
-plt.legend(loc='bottom right')
+plt.legend(loc='lower right')
 plt.xlabel('N epochs')
 plt.ylabel('Model accuracy (%)')
 plt.grid()
