@@ -174,7 +174,7 @@ print('--------------------')
 
 # c.) Define loss function, optimizer, lr scheduler and run-time stats %%%%%%%%%%
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model_rn.parameters(), lr=1e-3, weight_decay=1e-5)
+optimizer = optim.Adam(model_rn.parameters(), lr=1e-4, weight_decay=1e-5)
 # Decay LR by a factor of 0.1 every [step_size] epochs
 exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
 
@@ -301,13 +301,16 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
     kf_best_loss.append(min(test_loss))
 
 # Print stats of each fold to console:
+timestamp = datetime.datetime.now().strftime("%d-%m__%H-%M")
+print(f'Simulation complete {timestamp}.')
 print('K-FOLD RESULTS:')
 print(f'Accuracy on epoch {n_epochs}/{n_epochs}:')
 for i in range(k):
     print(f'fold {i+1} test accuracy: {kf_last_acc[i]:.2f}%')
-print(f'Best accuracy over {n_epochs} epochs:')
+print(f'\nBest accuracy over {n_epochs} epochs:')
 for i in range(k):
     print(f'fold {i+1} test accuracy: {kf_best_acc[i]:.2f}%')
+print(f'\nAverage best accuracy across {k} folds: {np.average(kf_best_acc):.2f}%')
 print('-' * 10)
 
 # *** MOVE PLOTTING INSIDE THE K-FOLD LOOP!
