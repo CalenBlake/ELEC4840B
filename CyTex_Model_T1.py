@@ -58,15 +58,13 @@ test_transforms = transforms.Compose([
 ])
 
 # Load whole dataset
-data_dir = "./EMODB Database/RGB_IMG/"
+data_dir = "./EMODB Database/RGB_IMG_noOverlap/"
 # Reload the newly created training and testing datasets, applying transforms
 train_dataset_imf = datasets.ImageFolder(data_dir, transform=train_transforms)
 test_dataset_imf = datasets.ImageFolder(data_dir, transform=test_transforms)
 
-# e.) plot sample of transformed training data %%%%%%%%%%
-# Get a random batch of images and labels
-# t_images, t_labels = next(iter(train_loader))
-# # Plot a sample of 6 images from the batch
+# e.) plot sample of transformed tra# *** Following line not necessary???
+# splits = skf.split(range(len(y)), y)he batch
 # fig, axs = plt.subplots(2, 3, figsize=(12, 6))
 # for i, ax in enumerate(axs.flatten()):
 #     ax.imshow(t_images[i].permute(1, 2, 0))
@@ -178,7 +176,7 @@ print('--------------------')
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model_rn.parameters(), lr=1e-3, weight_decay=1e-5)
 # Decay LR by a factor of 0.1 every [step_size] epochs
-exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=12, gamma=0.01)
+exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
 
 
 # d.) Create callable functions for model training & testing %%%%%%%%%%
@@ -252,8 +250,6 @@ y = train_dataset_imf.targets
 x = np.zeros(len(y))
 # alter random_state to alter results or make reproducible
 skf = StratifiedKFold(n_splits=k, shuffle=True, random_state=42)
-# *** Following line not necessary???
-# splits = skf.split(range(len(y)), y)
 # setup k-fold stats
 kf_last_acc = []
 kf_last_loss = []
