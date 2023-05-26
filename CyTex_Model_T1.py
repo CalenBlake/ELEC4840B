@@ -24,11 +24,11 @@ import torchvision
 from torchvision import datasets, models, transforms
 from torchvision.utils import save_image
 import matplotlib
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+# from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib import pyplot as plt
 import time
 import datetime
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+# from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 import os
 from sklearn.model_selection import StratifiedKFold
 
@@ -39,7 +39,7 @@ img_height = 400
 img_width = 400
 
 # Plot to separate window and remove Matplotlib version 3.6 warnings
-matplotlib.use("TkAgg")
+# matplotlib.use("TkAgg")
 
 # Define training transforms
 train_transforms = transforms.Compose([
@@ -159,6 +159,7 @@ model_rn.fc = nn.Sequential(
 # Initially train for minimal epochs and check results then scale up to ~200 epochs
 # a.) Set device (Cuda or CPU) %%%%%%%%%%
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(f'device = {device}')
 model_rn = model_rn.to(device)
 
 n_epochs = 20
@@ -254,13 +255,15 @@ skf = StratifiedKFold(n_splits=k, shuffle=True, random_state=42)
 # *** Following line not necessary???
 # splits = skf.split(range(len(y)), y)
 # setup k-fold stats
-kf_acc = []
-kf_loss = []
+kf_last_acc = []
+kf_last_loss = []
+kf_best_acc = []
+kf_best_loss = []
 # ========== Main k-fold Loop ==========
 print('\nINITIATING MODEL TRAINING & TESTING...')
 for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
     print(f"Training on fold {fold + 1}/{k}")
-    # Reset epoch statistics for each new fold -> prev not reset
+    # Reset epoch statistics for each new fold
     train_loss = []
     test_loss = []
     train_acc = []
@@ -296,13 +299,19 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
     print('-' * 10)
     # Store performance metrics for each of the k-folds
     # Use negative indexing to access last item of list, correlating to test stat from epoch n/n
-    kf_acc.append(test_acc[-1])
-    kf_loss.append(test_loss[-1])
+    kf_last_acc.append(test_acc[-1])
+    kf_last_loss.append(test_loss[-1])
+    kf_best_acc.append(max(test_acc))
+    kf_best_loss.append(min(test_loss))
 
 # Print stats of each fold to console:
 print('K-FOLD RESULTS:')
+print(f'Accuracy on epoch {n_epochs}/{n_epochs}:')
 for i in range(k):
-    print(f'fold {i+1} test accuracy: {kf_acc[i]:.1f}%')
+    print(f'fold {i+1} test accuracy: {kf_last_acc[i]:.2f}%')
+print(f'Best accuracy over {n_epochs} epochs:')
+for i in range(k):
+    print(f'fold {i+1} test accuracy: {kf_best_acc[i]:.2f}%')
 print('-' * 10)
 
 # *** MOVE PLOTTING INSIDE THE K-FOLD LOOP!
