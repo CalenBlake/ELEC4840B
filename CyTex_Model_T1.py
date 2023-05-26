@@ -215,6 +215,8 @@ def train_model(model, criterion, optimizer, scheduler):
     # append epoch results to corresponding lists
     train_loss.append(epoch_loss)
     train_acc.append(epoch_acc)
+    total_train_loss.append(epoch_loss)
+    total_train_acc.append(epoch_acc)
 
 
 def test_model(model):
@@ -241,6 +243,8 @@ def test_model(model):
         # append epoch results to corresponding lists
         test_loss.append(epoch_loss)
         test_acc.append(epoch_acc)
+        total_test_loss.append(epoch_loss)
+        total_test_acc.append(epoch_acc)
 
 # e.) Employ stratified k-fold splitting and loop
 k = 5
@@ -255,6 +259,12 @@ kf_last_acc = []
 kf_last_loss = []
 kf_best_acc = []
 kf_best_loss = []
+# setup total stats (spanning all folds)
+total_train_acc = []
+total_train_loss = []
+total_test_acc = []
+total_test_loss = []
+
 # ========== Main k-fold Loop ==========
 print('\nINITIATING MODEL TRAINING & TESTING...')
 for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
@@ -313,38 +323,49 @@ for i in range(k):
 print(f'\nAverage best accuracy across {k} folds: {np.average(kf_best_acc):.2f}%')
 print('-' * 10)
 
-# *** MOVE PLOTTING INSIDE THE K-FOLD LOOP!
-# g.i.) Plot the train and test loss (exp dec) %%%%%%%%%%
-# plt.figure()
-#
-# plt.subplot(1, 2, 1)
-# plt.plot(list(range(1, n_epochs+1)), train_loss, 'b')
-# plt.plot(list(range(1, n_epochs+1)), test_loss, 'r')
-# plt.title('Simulation Loss')
-# plt.legend(['Train Loss', 'Test Loss'], loc='upper right')
-# plt.xlabel('N epochs')
-# plt.ylabel('Average loss')
-# plt.grid()
-#
-# # g.ii.) Plot the train and test acc (exp inc) %%%%%%%%%%
-# plt.subplot(1, 2, 2)
-# plt.plot(list(range(1, n_epochs+1)), train_acc, 'b')
-# plt.plot(list(range(1, n_epochs+1)), test_acc, 'r')
-# plt.title('Prediction Accuracy')
-# plt.legend(['Train Acc', 'Test Acc'], loc='upper right')
-# plt.xlabel('N epochs')
-# plt.ylabel('Model accuracy (%)')
-# plt.grid()
-#
-# plt.tight_layout()
-# plt.show()
 
+plt.figure()
+plt.suptitle('EMODB DCNN Training Results')
+# g.i.) Plot the train and test loss (exp dec) %%%%%%%%%%
+plt.subplot(1, 2, 1)
+# Plot lines to show start and end of each fold
+plt.axvline(x=1,color='yellow',label='k-folds')
+for i in range(1, (k*n_epochs)+1):
+    if (i%n_epochs == 0):
+        plt.axvline(x=i,color='yellow')
+plt.plot(list(range(1, (k*n_epochs)+1)), total_train_loss, 'b', label='Train Loss')
+plt.plot(list(range(1, (k*n_epochs)+1)), total_test_loss, 'r', label='Test Loss')
+plt.title('Simulation Loss')
+plt.legend(loc='upper right')
+plt.xlabel('N epochs')
+plt.ylabel('Average loss')
+plt.grid()
+
+# g.ii.) Plot the train and test acc (exp inc) %%%%%%%%%%
+plt.subplot(1, 2, 2)
+# Plot lines to show start and end of each fold
+plt.axvline(x=1,ymin=0,ymax=100,color='yellow',label='k-folds')
+for i in range(1, (k*n_epochs)+1):
+    if (i%n_epochs == 0):
+        plt.axvline(x=i,color='yellow')
+plt.plot(list(range(1, (k*n_epochs)+1)), total_train_acc, 'b', label='Train Acc')
+plt.plot(list(range(1, (k*n_epochs)+1)), total_test_acc, 'r', label='Test Acc')
+ax = plt.gca()      # get current axis
+ax.set_ylim([0, 102])
+plt.title('Prediction Accuracy')
+plt.legend(loc='bottom right')
+plt.xlabel('N epochs')
+plt.ylabel('Model accuracy (%)')
+plt.grid()
+
+plt.tight_layout()
+plt.savefig(f'TrainResults_{timestamp}.png')
+plt.show()
 
 # --------------------- 4. Save & Load Params ---------------------
 # a.) Save trained model parameters %%%%%%%%%%
-timestamp = datetime.datetime.now().strftime("%d-%m__%H-%M")
-filename = f"params_{timestamp}.pt"
-torch.save(model_rn.state_dict(), f'rn50SavedParams/EMODB/{filename}')
+# filename = f"params_{timestamp}.pt"
+# torch.save(model_rn.state_dict(), f'rn50SavedParams/EMODB/{filename}')
 """
 # b.) Load trained model parameters %%%%%%%%%%
 model = model_rn
