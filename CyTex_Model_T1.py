@@ -160,7 +160,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f'device = {device}')
 model_rn = model_rn.to(device)
 
-n_epochs = 10
+n_epochs = 1
 n_batches = np.ceil(len(train_dataset_imf)/batch_size)
 
 # b.) Print some useful info before training
@@ -247,7 +247,7 @@ def test_model(model):
         total_test_acc.append(epoch_acc)
 
 # e.) Employ stratified k-fold splitting and loop
-k = 5
+k = 2
 # set list of labels/targets and dummy var x
 # ***CHECK: y should be identical for train and test datasets due to the same loading procedure and organisation
 y = train_dataset_imf.targets
