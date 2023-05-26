@@ -160,7 +160,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f'device = {device}')
 model_rn = model_rn.to(device)
 
-n_epochs = 20
+n_epochs = 10
 n_batches = np.ceil(len(train_dataset_imf)/batch_size)
 
 # b.) Print some useful info before training
@@ -342,9 +342,9 @@ print('-' * 10)
 
 # --------------------- 4. Save & Load Params ---------------------
 # a.) Save trained model parameters %%%%%%%%%%
-# timestamp = datetime.datetime.now().strftime("%d-%m__%H-%M")
-# filename = f"model_params_{timestamp}.pt"
-# torch.save(model_rn.state_dict(), f'rn50 saved params - EMODB/{filename}')
+timestamp = datetime.datetime.now().strftime("%d-%m__%H-%M")
+filename = f"params_{timestamp}.pt"
+torch.save(model_rn.state_dict(), f'rn50SavedParams/EMODB/{filename}')
 """
 # b.) Load trained model parameters %%%%%%%%%%
 model = model_rn
