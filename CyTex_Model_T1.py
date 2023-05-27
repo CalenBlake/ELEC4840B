@@ -28,7 +28,7 @@ import matplotlib
 from matplotlib import pyplot as plt
 import time
 import datetime
-# from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 import os
 from sklearn.model_selection import StratifiedKFold
 
@@ -63,8 +63,7 @@ data_dir = "./EMODB Database/RGB_IMG_noOverlap/"
 train_dataset_imf = datasets.ImageFolder(data_dir, transform=train_transforms)
 test_dataset_imf = datasets.ImageFolder(data_dir, transform=test_transforms)
 
-# e.) plot sample of transformed tra# *** Following line not necessary???
-# splits = skf.split(range(len(y)), y)he batch
+# e.) plot sample of transformed train batch
 # fig, axs = plt.subplots(2, 3, figsize=(12, 6))
 # for i, ax in enumerate(axs.flatten()):
 #     ax.imshow(t_images[i].permute(1, 2, 0))
@@ -119,8 +118,7 @@ print('--------------------')
 # # returns: torch.Size([32, 3, 400, 400])
 # print('--------------------')
 
-# Use sequential to add layers -> Same as described in Ali's paper
-# !!!RESEARCH: Get detailed summary of the function of each of the layers in the network + further research
+# Use sequential to add regularization layers
 model_rn.fc = nn.Sequential(
     nn.Dropout(p=0.4),
     nn.Flatten(),
@@ -177,7 +175,6 @@ criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model_rn.parameters(), lr=1e-4, weight_decay=1e-5)
 # Decay LR by a factor of 0.1 every [step_size] epochs
 exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
-
 
 # d.) Create callable functions for model training & testing %%%%%%%%%%
 def train_model(model, criterion, optimizer, scheduler):
@@ -323,7 +320,7 @@ for i in range(k):
 print(f'\nAverage best accuracy across {k} folds: {np.average(kf_best_acc):.2f}%')
 print('-' * 10)
 
-
+# PLOT TRAIN AND TEST RESULTS
 plt.figure()
 plt.suptitle('EMODB DCNN Training Results')
 # g.i.) Plot the train and test loss (exp dec) %%%%%%%%%%
@@ -359,7 +356,7 @@ plt.ylabel('Model accuracy (%)')
 plt.grid()
 
 plt.tight_layout()
-plt.savefig(f'TrainResults_{timestamp}.png')
+plt.savefig(f'EMODB_TrainResults_{timestamp}.png')
 plt.show()
 
 # --------------------- 4. Save & Load Params ---------------------
