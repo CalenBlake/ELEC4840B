@@ -118,7 +118,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f'device = {device}')
 model_rn = model_rn.to(device)
 
-n_epochs = 4
+n_epochs = 10
 n_batches = np.ceil(len(train_dataset_imf)/batch_size)
 
 # b.) Print some useful info before training
@@ -320,7 +320,7 @@ plt.show()
 # a.) Save trained model parameters %%%%%%%%%%
 timestamp = datetime.datetime.now().strftime("%d-%m__%H-%M")
 filename = f"model_params_{timestamp}.pt"
-torch.save(model_rn.state_dict(), f'rn50 saved params - RAVDESS/{filename}')
+torch.save(model_rn.state_dict(), f'rn50SavedParams-RAVDESS/{filename}')
 """
 # b.) Load trained model parameters %%%%%%%%%%
 model = model_rn
