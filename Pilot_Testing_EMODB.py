@@ -42,6 +42,9 @@ img_width = 400
 train_transforms = transforms.Compose([
     transforms.ToTensor(),
     transforms.RandomHorizontalFlip(p=0.5),
+    # transforms.RandomVerticalFlip(p=0.5),
+    transforms.RandomResize(256, 400),
+    transform.RandomRotation(30),
     # transforms.Resize(256),
     # Mean and std values from ImageNet benchmark dataset
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
@@ -66,6 +69,7 @@ model_rn = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
 for name, param in model_rn.named_parameters():
     if 'layer1' in name or 'layer2' in name:
         param.requires_grad = False
+num_features = model_rn.fc.in_features
 
 # Use sequential to add regularization layers
 model_rn.fc = nn.Sequential(
@@ -76,7 +80,7 @@ model_rn.fc = nn.Sequential(
     nn.Dropout(p=0.55),
     nn.Linear(4096, 1024),
     nn.BatchNorm1d(1024),
-    nn.Linear(1024, len(train_dataset_imf.classes)),
+    nn.Linear(1024, len(train_dataset.classes)),
     nn.Softmax(dim=1)
 )
 
@@ -86,21 +90,21 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f'device = {device}')
 model_rn = model_rn.to(device)
 
-n_epochs = 20
-n_batches = np.ceil(len(train_dataset_imf)/batch_size)
+n_epochs = 15
+n_batches = np.ceil(len(train_dataset)/batch_size)
 
 # b.) Print some useful info before training
 print('\n--------------------')
-print('Total data samples: ', len(train_dataset_imf) + len(test_dataset_imf))
-print('Train data samples: ', len(train_dataset_imf))
-print('Test data samples: ', len(test_dataset_imf))
+print('Total data samples: ', len(train_dataset) + len(test_dataset))
+print('Train data samples: ', len(train_dataset))
+print('Test data samples: ', len(test_dataset))
 print(f'batch size: {batch_size:.0f} --> training batches: {n_batches:.0f}')
 print(f'epochs: {n_epochs:.0f} --> total batches: {(n_epochs*n_batches):.0f}')
 print('--------------------')
 
 # c.) Define loss function, optimizer, lr scheduler and run-time stats %%%%%%%%%%
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model_rn.parameters(), lr=1e-3, weight_decay=1e-5)
+optimizer = optim.Adam(model_rn.parameters(), lr=1e-4, weight_decay=1e-1)
 # optimizer = optim.SGD()
 # Decay LR by a factor of 0.1 every [step_size] epochs
 exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
@@ -178,6 +182,10 @@ test_loader = data.DataLoader(
 )
 
 # f.) Execute model training and testing %%%%%%%%%%
+train_loss = []
+test_loss = []
+train_acc = []
+test_acc = []
 print('-' * 10)
 since = time.time()
 for epoch_i in range(n_epochs):
@@ -230,7 +238,8 @@ plt.ylabel('Model accuracy (%)')
 plt.grid()
 
 plt.tight_layout()
-plt.savefig(f'EMODB_PilotResults_{timestamp}.png')
+save_path = './EMODB_Pilot_Results/'
+plt.savefig(f'{save_path}EMODB_PilotResults_{timestamp}.png')
 plt.show()
 
 # --------------------- 4. Save & Load Params ---------------------
