@@ -266,6 +266,7 @@ total_test_loss = []
 print('\nINITIATING MODEL TRAINING & TESTING...')
 for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
     print(f"Training on fold {fold + 1}/{k}")
+    # ========== Define Model for each k-fold ==========
     # reinitialize the model parameters for each new fold
     model_rn = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
     # Freeze weights of first two layers
@@ -284,6 +285,13 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
     nn.Linear(1024, len(train_dataset_imf.classes)),
     nn.Softmax(dim=1)
     )
+    # Define optimization criteria
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model_rn.parameters(), lr=1e-4, weight_decay=1e-5)
+    exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
+    # Send model to cuda or other device
+    model_rn = model_rn.to(device)
+    # ========== END: Define Model for each k-fold ==========
     # Reset epoch statistics for each new fold
     train_loss = []
     test_loss = []
