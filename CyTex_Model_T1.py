@@ -268,7 +268,7 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
     print(f"Training on fold {fold + 1}/{k}")
     # ========== Define Model for each k-fold ==========
     # reinitialize the model parameters for each new fold
-    model_rn = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
+    model_rn = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
     # Freeze weights of first two layers
     for name, param in model_rn.named_parameters():
         if 'layer1' in name or 'layer2' in name:
