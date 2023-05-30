@@ -97,7 +97,7 @@ for model_set in ['resnet50', 'resnet18']:
     model_rn = model_rn.to(device)
 
     print(f'========== {model_set} RESULTS ==========')
-    n_epochs = 1
+    n_epochs = 100
     n_batches = np.ceil(len(train_dataset)/batch_size)
 
     # b.) Print some useful info before training
