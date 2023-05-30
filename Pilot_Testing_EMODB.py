@@ -111,10 +111,10 @@ for model_set in ['resnet50', 'resnet18']:
 
     # c.) Define loss function, optimizer, lr scheduler and run-time stats %%%%%%%%%%
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model_rn.parameters(), lr=1e-3, weight_decay=1e-5)
+    optimizer = optim.Adam(model_rn.parameters(), lr=1e-3, weight_decay=1e-4)
     # optimizer = optim.SGD()
     # Decay LR by a factor of 0.1 every [step_size] epochs
-    scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.3)
+    scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=[25,50,80], gamma=0.1)
 
     # d.) Create callable functions for model training & testing %%%%%%%%%%
     def train_model(model, criterion, optimizer):
