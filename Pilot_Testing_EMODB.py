@@ -111,13 +111,13 @@ for model_set in ['resnet50', 'resnet18']:
 
     # c.) Define loss function, optimizer, lr scheduler and run-time stats %%%%%%%%%%
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model_rn.parameters(), lr=0.5e-3, weight_decay=1e-2)
+    optimizer = optim.Adam(model_rn.parameters(), lr=1e-3, weight_decay=1e-5)
     # optimizer = optim.SGD()
     # Decay LR by a factor of 0.1 every [step_size] epochs
-    exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=12, gamma=0.3)
+    scheduler = lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.3)
 
     # d.) Create callable functions for model training & testing %%%%%%%%%%
-    def train_model(model, criterion, optimizer, scheduler):
+    def train_model(model, criterion, optimizer):
         model.train()
 
         running_loss = 0.0
@@ -143,8 +143,6 @@ for model_set in ['resnet50', 'resnet18']:
             running_loss += loss.item()
             running_corrects += torch.sum(preds == labels.data).item()
             # FORWARD END ----------
-        # step the scheduler on an epoch passing basis!
-        scheduler.step()
         # calculate + print: loss and acc over epoch_i
         epoch_loss = running_loss / len(train_dataset)
         epoch_acc = 100 * running_corrects / len(train_dataset)
@@ -199,9 +197,11 @@ for model_set in ['resnet50', 'resnet18']:
         # since_epoch = time.time()
         print(f'Epoch {epoch_i + 1}/{n_epochs}')
         # TRAINING + Display epoch stats
-        train_model(model_rn, criterion, optimizer, exp_lr_scheduler)
+        train_model(model_rn, criterion, optimizer)
         # TESTING + Display epoch stats
         test_model(model_rn)
+        # step the scheduler on an epoch passing basis!
+        scheduler.step()
         print('-' * 10)
     # Print total time of training + testing
     time_elapsed = time.time() - since
