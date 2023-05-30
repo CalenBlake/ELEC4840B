@@ -266,6 +266,24 @@ total_test_loss = []
 print('\nINITIATING MODEL TRAINING & TESTING...')
 for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
     print(f"Training on fold {fold + 1}/{k}")
+    # reinitialize the model parameters for each new fold
+    model_rn = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
+    # Freeze weights of first two layers
+    for name, param in model_rn.named_parameters():
+        if 'layer1' in name or 'layer2' in name:
+            param.requires_grad = False
+    # regularization and output layers
+    model_rn.fc = nn.Sequential(
+    nn.Dropout(p=0.4),
+    nn.Flatten(),
+    nn.Linear(num_features, 4096),
+    nn.BatchNorm1d(4096),
+    nn.Dropout(p=0.55),
+    nn.Linear(4096, 1024),
+    nn.BatchNorm1d(1024),
+    nn.Linear(1024, len(train_dataset_imf.classes)),
+    nn.Softmax(dim=1)
+    )
     # Reset epoch statistics for each new fold
     train_loss = []
     test_loss = []
