@@ -174,7 +174,7 @@ print('--------------------')
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model_rn.parameters(), lr=1e-4, weight_decay=1e-5)
 # Decay LR by a factor of 0.1 every [step_size] epochs
-exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
+scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
 
 # d.) Create callable functions for model training & testing %%%%%%%%%%
 def train_model(model, criterion, optimizer, scheduler):
@@ -203,8 +203,6 @@ def train_model(model, criterion, optimizer, scheduler):
         running_loss += loss.item()
         running_corrects += torch.sum(preds == labels.data).item()
         # FORWARD END ----------
-    # step the scheduler on an epoch passing basis!
-    # scheduler.step()
     # calculate + print: loss and acc over epoch_i
     epoch_loss = running_loss / len(train_dataset)
     epoch_acc = 100 * running_corrects / len(train_dataset)
@@ -289,7 +287,7 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
     # Define optimization criteria
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model_rn.parameters(), lr=1e-4, weight_decay=1e-2)
-    exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
+    scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
     # Send model to cuda or other device
     model_rn = model_rn.to(device)
     # ========== END: Define Model for each k-fold ==========
@@ -319,6 +317,8 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
         train_model(model_rn, criterion, optimizer, exp_lr_scheduler)
         # TESTING + Display epoch stats
         test_model(model_rn)
+        # step the scheduler on an epoch passing basis!
+        # scheduler.step()
         # print time per epoch for train and test cumulative pass
         # t_elapsed_epoch = time.time() - since_epoch
         # print(f'Training complete in {t_elapsed_epoch // 60:.0f}m {t_elapsed_epoch % 60:.0f}s')
