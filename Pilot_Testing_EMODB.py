@@ -65,7 +65,7 @@ train_dataset = datasets.ImageFolder(train_dir, transform=train_transforms)
 test_dataset = datasets.ImageFolder(test_dir, transform=test_transforms)
 
 # --------------------- 2. Construct Model - ResNet50 ---------------------
-model_rn = models.wide_resnet50_2(weights=models.Wide_ResNet50_2_Weights.IMAGENET1K_V2)
+model_rn = models.resnet34(weights=models.ResNet34_Weights.IMAGENET1K_V1)
 for name, param in model_rn.named_parameters():
     if 'layer1' in name or 'layer2' in name:
         param.requires_grad = False

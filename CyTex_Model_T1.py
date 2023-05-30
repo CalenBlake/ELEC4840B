@@ -268,11 +268,12 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
     print(f"Training on fold {fold + 1}/{k}")
     # ========== Define Model for each k-fold ==========
     # reinitialize the model parameters for each new fold
-    model_rn = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
+    model_rn = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
     # Freeze weights of first two layers
     for name, param in model_rn.named_parameters():
         if 'layer1' in name or 'layer2' in name:
             param.requires_grad = False
+    num_features = model_rn.fc.in_features
     # regularization and output layers
     model_rn.fc = nn.Sequential(
     nn.Dropout(p=0.4),
@@ -287,7 +288,7 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
     )
     # Define optimization criteria
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model_rn.parameters(), lr=1e-4, weight_decay=1e-5)
+    optimizer = optim.Adam(model_rn.parameters(), lr=1e-4, weight_decay=1e-2)
     exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
     # Send model to cuda or other device
     model_rn = model_rn.to(device)
