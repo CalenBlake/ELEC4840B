@@ -43,9 +43,9 @@ train_transforms = transforms.Compose([
     transforms.ToTensor(),
     transforms.RandomHorizontalFlip(p=0.5),
     # transforms.RandomVerticalFlip(p=0.5),
-    transforms.RandomResize(256, 400),
-    transform.RandomRotation(30),
-    # transforms.Resize(256),
+    # transforms.RandomResizedCrop(size=256, scale=(0.9,1.0), ratio=(1.0,1.0), antialias=False),
+    # transforms.RandomRotation(30),
+    # transforms.Resize(256,antialias=False),
     # Mean and std values from ImageNet benchmark dataset
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
@@ -65,7 +65,7 @@ train_dataset = datasets.ImageFolder(train_dir, transform=train_transforms)
 test_dataset = datasets.ImageFolder(test_dir, transform=test_transforms)
 
 # --------------------- 2. Construct Model - ResNet50 ---------------------
-model_rn = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
+model_rn = models.wide_resnet50_2(weights=models.Wide_ResNet50_2_Weights.IMAGENET1K_V2)
 for name, param in model_rn.named_parameters():
     if 'layer1' in name or 'layer2' in name:
         param.requires_grad = False
@@ -90,7 +90,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f'device = {device}')
 model_rn = model_rn.to(device)
 
-n_epochs = 15
+n_epochs = 10
 n_batches = np.ceil(len(train_dataset)/batch_size)
 
 # b.) Print some useful info before training
@@ -104,7 +104,7 @@ print('--------------------')
 
 # c.) Define loss function, optimizer, lr scheduler and run-time stats %%%%%%%%%%
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model_rn.parameters(), lr=1e-4, weight_decay=1e-1)
+optimizer = optim.Adam(model_rn.parameters(), lr=1e-4, weight_decay=1e-2)
 # optimizer = optim.SGD()
 # Decay LR by a factor of 0.1 every [step_size] epochs
 exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
