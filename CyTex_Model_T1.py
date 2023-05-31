@@ -306,17 +306,13 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
     print('-' * 10)
     since = time.time()
     for epoch_i in range(n_epochs):
-        # since_epoch = time.time()
         print(f'Epoch {epoch_i + 1}/{n_epochs}')
         # TRAINING + Display epoch stats
         train_model(model_rn, criterion, optimizer)
         # TESTING + Display epoch stats
         test_model(model_rn)
         # step the scheduler on an epoch passing basis!
-        scheduler.step()
-        # print time per epoch for train and test cumulative pass
-        # t_elapsed_epoch = time.time() - since_epoch
-        # print(f'Training complete in {t_elapsed_epoch // 60:.0f}m {t_elapsed_epoch % 60:.0f}s')
+        # scheduler.step()
         print('-' * 10)
     # Print total time of training + testing
     time_elapsed = time.time() - since
