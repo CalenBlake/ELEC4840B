@@ -44,8 +44,9 @@ img_width = 400
 # Define training transforms
 train_transforms = transforms.Compose([
     transforms.ToTensor(),
-    transforms.RandomHorizontalFlip(p=0.5),
-    # transforms.Resize(256),
+    # transforms.RandomHorizontalFlip(p=0.5),
+    # transforms.Resize(256, antialias=False),
+    # transforms.RandomRotation(15),
     # Mean and std values from ImageNet benchmark dataset
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
@@ -80,7 +81,7 @@ test_dataset_imf = datasets.ImageFolder(data_dir, transform=test_transforms)
 # Load ResNet50 model, pretrained being depreciated, instead specify weights
 # Access weights at: https://pytorch.org/vision/stable/models.html
 # OLD SYNTAX: model_rn = models.resnet50(pretrained=True)
-model_rn = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
+model_rn = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
 # model_rn = models.resnet152(weights=models.ResNet152_Weights.IMAGENET1K_V2)
 # FREEZE Weights of the first two blocks, retrain remaining by default
 # named_parameters() returns (str, Parameter) – Tuple containing the name and parameter
@@ -98,7 +99,7 @@ for name, param in model_rn.named_parameters():
 # This will feed into the following layers we create at the output of the ResNet model
 num_features = model_rn.fc.in_features
 print('\n--------------------')
-print('input features of final resnet50 layer (Pre CyTex additions):')
+print('input features of final resnet layer (Pre CyTex additions):')
 print(num_features)
 print('--------------------')
 # num_features = 2048
@@ -158,7 +159,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f'device = {device}')
 model_rn = model_rn.to(device)
 
-n_epochs = 10
+n_epochs = 15
 n_batches = np.ceil(len(train_dataset_imf)/batch_size)
 
 # b.) Print some useful info before training
@@ -170,14 +171,8 @@ print(f'batch size: {batch_size:.0f} --> training batches: {n_batches:.0f}')
 print(f'epochs: {n_epochs:.0f} --> total batches: {(n_epochs*n_batches):.0f}')
 print('--------------------')
 
-# c.) Define loss function, optimizer, lr scheduler and run-time stats %%%%%%%%%%
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model_rn.parameters(), lr=1e-4, weight_decay=1e-5)
-# Decay LR by a factor of 0.1 every [step_size] epochs
-scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
-
 # d.) Create callable functions for model training & testing %%%%%%%%%%
-def train_model(model, criterion, optimizer, scheduler):
+def train_model(model, criterion, optimizer):
     model.train()
 
     running_loss = 0.0
@@ -266,7 +261,7 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
     print(f"Training on fold {fold + 1}/{k}")
     # ========== Define Model for each k-fold ==========
     # reinitialize the model parameters for each new fold
-    model_rn = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
+    model_rn = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
     # Freeze weights of first two layers
     for name, param in model_rn.named_parameters():
         if 'layer1' in name or 'layer2' in name:
@@ -286,7 +281,7 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
     )
     # Define optimization criteria
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model_rn.parameters(), lr=1e-4, weight_decay=1e-2)
+    optimizer = optim.Adam(model_rn.parameters(), lr=1e-4, weight_decay=1e-5)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
     # Send model to cuda or other device
     model_rn = model_rn.to(device)
@@ -314,11 +309,11 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
         # since_epoch = time.time()
         print(f'Epoch {epoch_i + 1}/{n_epochs}')
         # TRAINING + Display epoch stats
-        train_model(model_rn, criterion, optimizer, exp_lr_scheduler)
+        train_model(model_rn, criterion, optimizer)
         # TESTING + Display epoch stats
         test_model(model_rn)
         # step the scheduler on an epoch passing basis!
-        # scheduler.step()
+        scheduler.step()
         # print time per epoch for train and test cumulative pass
         # t_elapsed_epoch = time.time() - since_epoch
         # print(f'Training complete in {t_elapsed_epoch // 60:.0f}m {t_elapsed_epoch % 60:.0f}s')
