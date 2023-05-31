@@ -9,7 +9,5 @@
 /rn50SavedParams-RAVDESS/
 /rn50SavedParams-EMODB/
 /split_test.py
-/EMODB-bestParams.pt
-/RAVDESS-bestParams.pt
-# ignore all saved paramter state_dicts
-*.pt
+/EMODB-bestParams
+/RAVDESS-bestParams
