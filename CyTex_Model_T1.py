@@ -81,7 +81,7 @@ test_dataset_imf = datasets.ImageFolder(data_dir, transform=test_transforms)
 # Load ResNet50 model, pretrained being depreciated, instead specify weights
 # Access weights at: https://pytorch.org/vision/stable/models.html
 # OLD SYNTAX: model_rn = models.resnet50(pretrained=True)
-model_rn = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
+model_rn = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
 # model_rn = models.resnet152(weights=models.ResNet152_Weights.IMAGENET1K_V2)
 # FREEZE Weights of the first two blocks, retrain remaining by default
 # named_parameters() returns (str, Parameter) – Tuple containing the name and parameter
@@ -254,6 +254,8 @@ total_train_acc = []
 total_train_loss = []
 total_test_acc = []
 total_test_loss = []
+# Init best single net accuracy over all folds and epochs
+net_best_acc = 0
 
 # ========== Main k-fold Loop ==========
 print('\nINITIATING MODEL TRAINING & TESTING...')
@@ -261,7 +263,7 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
     print(f"Training on fold {fold + 1}/{k}")
     # ========== Define Model for each k-fold ==========
     # reinitialize the model parameters for each new fold
-    model_rn = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
+    model_rn = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
     # Freeze weights of first two layers
     for name, param in model_rn.named_parameters():
         if 'layer1' in name or 'layer2' in name:
@@ -313,10 +315,18 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
         test_model(model_rn)
         # step the scheduler on an epoch passing basis!
         # scheduler.step()
+        # If model sets a new best test acc save data
+        if (test_acc[-1] > net_best_acc):
+            # delete prev saved params
+            if os.path.exists('EMODB-bestParams'):
+                os.remove('EMODB-bestParams')
+            # save new params
+            torch.save(model_rn.state_dict(), 'EMODB-bestParams')
         print('-' * 10)
     # Print total time of training + testing
     time_elapsed = time.time() - since
     print(f'Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
+    print(f'Net Best Acc so far: {net_best_acc}')
     print('-' * 10)
     # Store performance metrics for each of the k-folds
     # Use negative indexing to access last item of list, correlating to test stat from epoch n/n
@@ -374,7 +384,7 @@ plt.ylabel('Model accuracy (%)')
 plt.grid()
 
 plt.tight_layout()
-plt.savefig(f'EMODB_TrainResults_{timestamp}.png')
+plt.savefig(f'EMODB_Final_Results/EMODB_TrainResults_{timestamp}.png')
 plt.show()
 
 # --------------------- 4. Save & Load Params ---------------------
