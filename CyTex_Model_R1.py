@@ -40,7 +40,7 @@ img_width = 400
 # Define training transforms
 train_transforms = transforms.Compose([
     transforms.ToTensor(),
-    transforms.RandomHorizontalFlip(p=0.5),
+    # transforms.RandomHorizontalFlip(p=0.5),
     # transforms.Resize(256),
     # Mean and std values from ImageNet benchmark dataset
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
@@ -62,63 +62,35 @@ test_dataset_imf = datasets.ImageFolder(data_dir, transform=test_transforms)
 
 # ----- Can plot images of training data pre and post augmentation here -----
 
-# --------------------- 2. Construct Model - ResNet50 ---------------------
-# Load ResNet50 model, pretrained being depreciated, instead specify weights
-# Access weights at: https://pytorch.org/vision/stable/models.html
-model_rn = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
-# FREEZE Weights of the first two blocks, retrain remaining by default
-for name, param in model_rn.named_parameters():
-    if 'layer1' in name or 'layer2' in name:
-        param.requires_grad = False
-
-# get number of input features for the last fully connected layer
-num_features = model_rn.fc.in_features
-# Add regularization layers to the output of the TL model => Improve Generalization
-model_rn.fc = nn.Sequential(
-    nn.Dropout(p=0.4),
-    nn.Flatten(),
-    nn.Linear(num_features, 4096),
-    nn.BatchNorm1d(4096),
-    nn.Dropout(p=0.55),
-    nn.Linear(4096, 1024),
-    nn.BatchNorm1d(1024),
-    # output dim of linear layer = # classes of ravdess dataset
-    nn.Linear(1024, len(train_dataset_imf.classes)),
-    # dim=1 applies the softmax operation over the first dimension of the tensor
-    # Returns probability distribution over the classes for each example in each batch
-    nn.Softmax(dim=1)
-)
-
 # --------------------- 2.5. Buid dummy data & pass through model ---------------------
-dummy_loader = data.DataLoader(
-        train_dataset_imf, batch_size=batch_size, shuffle=True, pin_memory=True
-    )
+# dummy_loader = data.DataLoader(
+#         train_dataset_imf, batch_size=batch_size, shuffle=True, pin_memory=True
+#     )
 
 # Check shape of example data
-print('\n--------------------')
-examples = enumerate(dummy_loader)
-batch_idx, (example_data, example_targets) = next(examples)
-print('The shape of the example data is:')
-print(example_data.shape)
+# print('\n--------------------')
+# examples = enumerate(dummy_loader)
+# batch_idx, (example_data, example_targets) = next(examples)
+# print('The shape of the example data is:')
+# print(example_data.shape)
 # returns: torch.Size([32, 3, 400, 400])
 # [batch size, rgb channels, img_x_dim, img_y_dim]
-print('--------------------')
+# print('--------------------')
 
 # Pass dummy batch through model to check shape
-output_tensor = model_rn(example_data)
-print('\n--------------------')
-print('The shape of the example data, after passing through the model, is:')
-print(output_tensor.shape)
+# output_tensor = model_rn(example_data)
+# print('\n--------------------')
+# print('The shape of the example data, after passing through the model, is:')
+# print(output_tensor.shape)
 # returns: torch.Size([32, 8]) = [batch_size, num_classes]
-print('--------------------')
+# print('--------------------')
 
 # --------------------- 3. Train & Evaluate Model ---------------------
 # a.) Set device (Cuda or CPU) %%%%%%%%%%
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f'device = {device}')
-model_rn = model_rn.to(device)
 
-n_epochs = 10
+n_epochs = 20
 n_batches = np.ceil(len(train_dataset_imf)/batch_size)
 
 # b.) Print some useful info before training
@@ -130,14 +102,8 @@ print(f'batch size: {batch_size:.0f} --> training batches: {n_batches:.0f}')
 print(f'epochs: {n_epochs:.0f} --> total batches: {(n_epochs*n_batches):.0f}')
 print('--------------------')
 
-# c.) Define loss function, optimizer, lr scheduler and run-time stats %%%%%%%%%%
-criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model_rn.parameters(), lr=1e-4, weight_decay=1e-5)
-# Decay LR by a factor of 0.1 every [step_size] epochs
-exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
-
 # d.) Create callable functions for model training & testing %%%%%%%%%%
-def train_model(model, criterion, optimizer, scheduler):
+def train_model(model, criterion, optimizer):
     model.train()
 
     running_loss = 0.0
@@ -163,8 +129,6 @@ def train_model(model, criterion, optimizer, scheduler):
         running_loss += loss.item()
         running_corrects += torch.sum(preds == labels.data).item()
         # FORWARD END ----------
-    # step the scheduler on an epoch passing basis!
-    # scheduler.step()
     # calculate + print: loss and acc over epoch_i
     epoch_loss = running_loss / len(train_dataset)
     epoch_acc = 100 * running_corrects / len(train_dataset)
@@ -220,11 +184,40 @@ total_train_acc = []
 total_train_loss = []
 total_test_acc = []
 total_test_loss = []
+# Init best single net accuracy over all folds and epochs
+net_best_acc = 0.0
 
 # ========== Main k-fold Loop ==========
 print('\nINITIATING MODEL TRAINING & TESTING...')
 for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
     print(f"Training on fold {fold + 1}/{k}")
+    # ========== Define Model for each k-fold ==========
+    # reinitialize the model parameters for each new fold
+    model_rn = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
+    # Freeze weights of first two layers
+    for name, param in model_rn.named_parameters():
+        if 'layer1' in name or 'layer2' in name:
+            param.requires_grad = False
+    num_features = model_rn.fc.in_features
+    # regularization and output layers
+    model_rn.fc = nn.Sequential(
+    nn.Dropout(p=0.4),
+    nn.Flatten(),
+    nn.Linear(num_features, 4096),
+    nn.BatchNorm1d(4096),
+    nn.Dropout(p=0.55),
+    nn.Linear(4096, 1024),
+    nn.BatchNorm1d(1024),
+    nn.Linear(1024, len(train_dataset_imf.classes)),
+    nn.Softmax(dim=1)
+    )
+    # Define optimization criteria
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model_rn.parameters(), lr=1e-4, weight_decay=1e-5)
+    scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.1)
+    # Send model to cuda or other device
+    model_rn = model_rn.to(device)
+    # ========== END: Define Model for each k-fold ==========
     # Reset epoch statistics for each new fold
     train_loss = []
     test_loss = []
@@ -249,11 +242,12 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
         # since_epoch = time.time()
         print(f'Epoch {epoch_i + 1}/{n_epochs}')
         # TRAINING + Display epoch stats
-        train_model(model_rn, criterion, optimizer, exp_lr_scheduler)
+        train_model(model_rn, criterion, optimizer)
         # TESTING + Display epoch stats
         test_model(model_rn)
+        # scheduler.step()
         # If model sets a new best test acc save data
-        """
+        # """
         if (total_test_acc[-1] > net_best_acc):
             net_best_acc = total_test_acc[-1]
             # delete prev saved params
@@ -261,7 +255,7 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
                 os.remove('RAVDESS-bestParams')
             # save new params
             torch.save(model_rn.state_dict(), 'RAVDESS-bestParams')
-        """
+        # """
         print('-' * 10)
     # Print total time of training + testing
     time_elapsed = time.time() - since
