@@ -316,9 +316,9 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
         test_model(model_rn)
         # step the scheduler on an epoch passing basis!
         # scheduler.step()
-        # If model sets a new best test acc save data
-        print(f'total_test_acc[-1] = {total_test_acc[-1]}')
-        print(f'Net Best Acc so far: {net_best_acc}')
+        # print(f'total_test_acc[-1] = {total_test_acc[-1]}')
+        # print(f'Net Best Acc so far: {net_best_acc}')
+        # If model sets a new best test acc save PARAMS
         if (total_test_acc[-1] > net_best_acc):
             net_best_acc = total_test_acc[-1]
             # delete prev saved params
