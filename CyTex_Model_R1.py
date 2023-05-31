@@ -313,14 +313,14 @@ plt.ylabel('Model accuracy (%)')
 plt.grid()
 
 plt.tight_layout()
-plt.savefig(f'RAVDESSTrainResults_{timestamp}.png')
+plt.savefig(f'RAVDESS_Final_Results/RAVDESS_Results_{timestamp}.png')
 plt.show()
 
 # --------------------- 4. Save & Load Params ---------------------
 # a.) Save trained model parameters %%%%%%%%%%
-timestamp = datetime.datetime.now().strftime("%d-%m__%H-%M")
-filename = f"model_params_{timestamp}.pt"
-torch.save(model_rn.state_dict(), f'rn50SavedParams-RAVDESS/{filename}')
+# timestamp = datetime.datetime.now().strftime("%d-%m__%H-%M")
+# filename = f"model_params_{timestamp}.pt"
+# torch.save(model_rn.state_dict(), f'rn50SavedParams-RAVDESS/{filename}')
 """
 # b.) Load trained model parameters %%%%%%%%%%
 model = model_rn

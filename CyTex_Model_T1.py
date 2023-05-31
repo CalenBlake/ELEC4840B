@@ -384,7 +384,7 @@ plt.ylabel('Model accuracy (%)')
 plt.grid()
 
 plt.tight_layout()
-plt.savefig(f'EMODB_Final_Results/EMODB_TrainResults_{timestamp}.png')
+plt.savefig(f'EMODB_Final_Results/EMODB_Results_{timestamp}.png')
 plt.show()
 
 # --------------------- 4. Save & Load Params ---------------------

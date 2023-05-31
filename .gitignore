@@ -11,3 +11,5 @@
 /split_test.py
 /EMODB-bestParams.pt
 /RAVDESS-bestParams.pt
+# ignore all saved paramter state_dicts
+*.pt
