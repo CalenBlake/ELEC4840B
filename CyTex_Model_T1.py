@@ -81,7 +81,8 @@ test_dataset_imf = datasets.ImageFolder(data_dir, transform=test_transforms)
 # Load ResNet50 model, pretrained being depreciated, instead specify weights
 # Access weights at: https://pytorch.org/vision/stable/models.html
 # OLD SYNTAX: model_rn = models.resnet50(pretrained=True)
-model_rn = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
+model_rn = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
+# model_rn = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
 # model_rn = models.resnet152(weights=models.ResNet152_Weights.IMAGENET1K_V2)
 # FREEZE Weights of the first two blocks, retrain remaining by default
 # named_parameters() returns (str, Parameter) – Tuple containing the name and parameter
@@ -159,7 +160,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f'device = {device}')
 model_rn = model_rn.to(device)
 
-n_epochs = 15
+n_epochs = 10
 n_batches = np.ceil(len(train_dataset_imf)/batch_size)
 
 # b.) Print some useful info before training
@@ -255,7 +256,7 @@ total_train_loss = []
 total_test_acc = []
 total_test_loss = []
 # Init best single net accuracy over all folds and epochs
-net_best_acc = 0
+net_best_acc = 0.0
 
 # ========== Main k-fold Loop ==========
 print('\nINITIATING MODEL TRAINING & TESTING...')
@@ -263,7 +264,7 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
     print(f"Training on fold {fold + 1}/{k}")
     # ========== Define Model for each k-fold ==========
     # reinitialize the model parameters for each new fold
-    model_rn = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
+    model_rn = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
     # Freeze weights of first two layers
     for name, param in model_rn.named_parameters():
         if 'layer1' in name or 'layer2' in name:
@@ -316,7 +317,10 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
         # step the scheduler on an epoch passing basis!
         # scheduler.step()
         # If model sets a new best test acc save data
-        if (test_acc[-1] > net_best_acc):
+        print(f'total_test_acc[-1] = {total_test_acc[-1]}')
+        print(f'Net Best Acc so far: {net_best_acc}')
+        if (total_test_acc[-1] > net_best_acc):
+            net_best_acc = total_test_acc[-1]
             # delete prev saved params
             if os.path.exists('EMODB-bestParams'):
                 os.remove('EMODB-bestParams')

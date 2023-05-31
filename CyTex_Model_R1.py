@@ -252,10 +252,21 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
         train_model(model_rn, criterion, optimizer, exp_lr_scheduler)
         # TESTING + Display epoch stats
         test_model(model_rn)
+        # If model sets a new best test acc save data
+        """
+        if (total_test_acc[-1] > net_best_acc):
+            net_best_acc = total_test_acc[-1]
+            # delete prev saved params
+            if os.path.exists('RAVDESS-bestParams'):
+                os.remove('RAVDESS-bestParams')
+            # save new params
+            torch.save(model_rn.state_dict(), 'RAVDESS-bestParams')
+        """
         print('-' * 10)
     # Print total time of training + testing
     time_elapsed = time.time() - since
     print(f'Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
+    print(f'Net Best Acc so far: {net_best_acc}')
     print('-' * 10)
     # Store performance metrics for each of the k-folds
     # Use negative indexing to access last item of list, correlating to test stat from epoch n/n
