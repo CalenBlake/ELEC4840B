@@ -56,7 +56,7 @@ test_transforms = transforms.Compose([
 ])
 
 # Load whole dataset
-data_dir = "./RAVDESS_Refactored/RGB_IMG/"
+data_dir = "./RAVDESS_Refactored/RGB_IMG_Culled/"
 # Reload the newly created training and testing datasets, applying transforms
 train_dataset_imf = datasets.ImageFolder(data_dir, transform=train_transforms)
 test_dataset_imf = datasets.ImageFolder(data_dir, transform=test_transforms)
