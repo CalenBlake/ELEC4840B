@@ -41,7 +41,8 @@ img_width = 400
 train_transforms = transforms.Compose([
     transforms.ToTensor(),
     # transforms.RandomHorizontalFlip(p=0.5),
-    # transforms.Resize(256),
+    # transforms.Resize(256, antialias=False),
+    # transforms.RandomRotation(15),
     # Mean and std values from ImageNet benchmark dataset
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
@@ -90,7 +91,7 @@ test_dataset_imf = datasets.ImageFolder(data_dir, transform=test_transforms)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f'device = {device}')
 
-n_epochs = 20
+n_epochs = 14
 n_batches = np.ceil(len(train_dataset_imf)/batch_size)
 
 # b.) Print some useful info before training
@@ -194,6 +195,7 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
     # ========== Define Model for each k-fold ==========
     # reinitialize the model parameters for each new fold
     model_rn = models.resnet18(weights=models.ResNet18_Weights.IMAGENET1K_V1)
+    # model_rn = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
     # Freeze weights of first two layers
     for name, param in model_rn.named_parameters():
         if 'layer1' in name or 'layer2' in name:
