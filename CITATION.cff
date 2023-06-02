@@ -1,0 +1,22 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: ELEC4840B-CodeRepository-CB
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Calen
+    family-names: Blake
+    email: c3283313@uon.edu.au
+    affiliation: Author
+repository-code: 'https://github.com/CalenBlake/ELEC4840B'
+abstract: >-
+  Honours thesis exploring the CyTex transform as a means of
+  classifying the emotional state of a human, given a
+  sampled speech input. Author Calen Blake.
+commit: 'Revision: 01'
+version: '1.0'
+date-released: '2023-06-02'
