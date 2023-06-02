@@ -9,7 +9,7 @@ the CyTex transform as a means of classifying
 the emotional state of a human, given a speech
 sampled input.
 
-**Script Structure:**
+**Script Structure:**\\
 Preprocessing Scripts/CyTex_Image_Gen.py:
 This script is used to generate CyTex images from the EMODB dataset. The input is EMODB Database/wav/ and the output is one of the RGB_IMG folders, depending on the configuration of the script. Output is in the format of a folder housing subfolders for each emotional class of the data. Multiple CyTex images will be generated for each sample from the original EMODB dataset.
 
