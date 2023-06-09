@@ -13,8 +13,7 @@ sampled input.
 Librosa ver == 0.8.1  
 other software versions not critical
 
-**Script Structure:**
-
+**Script Structure:**  
 _Preprocessing Scripts/CyTex_Image_Gen.py:_
 This script is used to generate CyTex images from the EMODB dataset. The input is EMODB Database/wav/ and the output is one of the RGB_IMG folders, depending on the configuration of the script. Output is in the format of a folder housing subfolders for each emotional class of the data. Multiple CyTex images will be generated for each sample from the original EMODB dataset.
 
