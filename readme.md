@@ -9,6 +9,10 @@ the CyTex transform as a means of classifying
 the emotional state of a human, given a speech
 sampled input.
 
+**Required:**
+Librosa ver == 0.8.1
+other software versions not critical
+
 **Script Structure:**
 
 _Preprocessing Scripts/CyTex_Image_Gen.py:_
