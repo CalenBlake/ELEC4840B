@@ -164,9 +164,9 @@ n_batches = np.ceil(len(train_dataset_imf)/batch_size)
 
 # b.) Print some useful info before training
 print('\n--------------------')
-print('Total data samples: ', len(train_dataset_imf) + len(test_dataset_imf))
-print('Train data samples: ', len(train_dataset_imf))
-print('Test data samples: ', len(test_dataset_imf))
+print('Total data samples: ', len(train_dataset_imf))
+# print('Train data samples: ', len(train_dataset_imf))
+# print('Test data samples: ', len(test_dataset_imf))
 print(f'batch size: {batch_size:.0f} --> training batches: {n_batches:.0f}')
 print(f'epochs: {n_epochs:.0f} --> total batches: {(n_epochs*n_batches):.0f}')
 print('--------------------')
@@ -387,7 +387,8 @@ plt.ylabel('Model accuracy (%)')
 plt.grid()
 
 plt.tight_layout()
-plt.savefig(f'EMODB_Final_Results/EMODB_Results_{timestamp}.png')
+plt.savefig(f'EMODB_Final_Results/EMODB_Results_{timestamp}.svg',
+    format='svg', dpi=1200)
 plt.show()
 
 # --------------------- 4. Save & Load Params ---------------------
