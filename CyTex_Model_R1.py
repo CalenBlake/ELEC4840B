@@ -56,7 +56,7 @@ test_transforms = transforms.Compose([
 ])
 
 # Load whole dataset
-data_dir = "./RAVDESS_Refactored/RGB_IMG_Culled/"
+data_dir = "./RAVDESS_Refactored/RGB_IMG_Split/train/"
 # Reload the newly created training and testing datasets, applying transforms
 train_dataset_imf = datasets.ImageFolder(data_dir, transform=train_transforms)
 test_dataset_imf = datasets.ImageFolder(data_dir, transform=test_transforms)
@@ -320,7 +320,8 @@ plt.ylabel('Model accuracy (%)')
 plt.grid()
 
 plt.tight_layout()
-plt.savefig(f'RAVDESS_Final_Results/RAVDESS_Results_{timestamp}.png')
+plt.savefig(f'RAVDESS_Final_Results/RAVDESS_Results_{timestamp}.svg',
+    format='svg', dpi=1200)
 plt.show()
 
 # --------------------- 4. Save & Load Params ---------------------
