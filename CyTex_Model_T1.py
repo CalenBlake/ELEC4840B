@@ -59,7 +59,7 @@ test_transforms = transforms.Compose([
 ])
 
 # Load whole dataset
-data_dir = "./EMODB Database/RGB_IMG_noOverlap/"
+data_dir = "./EMODB Database/RGB_IMG_Split/train/"
 # Reload the newly created training and testing datasets, applying transforms
 train_dataset_imf = datasets.ImageFolder(data_dir, transform=train_transforms)
 test_dataset_imf = datasets.ImageFolder(data_dir, transform=test_transforms)
