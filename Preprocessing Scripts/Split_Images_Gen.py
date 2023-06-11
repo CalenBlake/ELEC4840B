@@ -56,7 +56,7 @@ plt.show()
 
 # c.) separate into training and test sets %%%%%%%%%%
 # split data into training and test set, 80/20 split
-train_indices, test_indices = train_test_split(list(range(len(dataset))), test_size=0.2, random_state=42)
+train_indices, test_indices = train_test_split(list(range(len(dataset))), test_size=0.1, random_state=42)
 train_data = data.Subset(dataset, train_indices)
 test_data = data.Subset(dataset, test_indices)
 
