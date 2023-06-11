@@ -129,7 +129,6 @@ model_rn.fc = nn.Sequential(
     nn.Dropout(p=0.55),
     nn.Linear(4096, 1024),
     nn.BatchNorm1d(1024),
-    # ASK ALI: Should modify shape to be num of classes!?
     nn.Linear(1024, len(train_dataset_imf.classes)),
     # dim=1 applies the softmax operation over the first dimension of the tensor
     # Returns probability distribution over the classes for each example in each batch
