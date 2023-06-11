@@ -28,7 +28,7 @@ import os
 # NOTE: Will need to sort data into training and test sets. Check how this was done in ENGG3300.
 # This can either be done in code or can make train and val folders in the data directory.
 # a.) load data %%%%%%%%%%
-data_dir = '../EMODB Database/RGB_IMG_noOverlap/'
+data_dir = '../RAVDESS_Refactored/RGB_IMG_Culled/'
 batch_size = 32
 img_height = 400
 img_width = 400
@@ -63,7 +63,7 @@ test_data = data.Subset(dataset, test_indices)
 # e.) save subsets in directories and reload %%%%%%%%%%
 # This will maintain the properties of a dataset. For instance, 'Subset' object has no attribute 'classes'
 # Create a new ImageFolder object for the train subset
-train_dir = "../EMODB Database/RGB_IMG_Split/train/"
+train_dir = "../RAVDESS_Refactored/RGB_IMG_Split/train/"
 if not os.path.exists(train_dir):
     os.makedirs(train_dir)
 for i in range(len(train_data)):
@@ -76,7 +76,7 @@ for i in range(len(train_data)):
     save_image(image, save_path)
 
 # Create a new ImageFolder object for the test subset
-test_dir = "../EMODB Database/RGB_IMG_Split/test/"
+test_dir = "../RAVDESS_Refactored/RGB_IMG_Split/test/"
 if not os.path.exists(test_dir):
     os.makedirs(test_dir)
 for i in range(len(test_data)):
