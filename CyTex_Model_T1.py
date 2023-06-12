@@ -324,7 +324,9 @@ for fold, (train_indices, test_indices) in enumerate(skf.split(x, y)):
             if os.path.exists('EMODB-bestParams'):
                 os.remove('EMODB-bestParams')
             # save new params
-            torch.save(model_rn.state_dict(), 'EMODB-bestParams')
+            # torch.save(model_rn.state_dict(), 'EMODB-bestParams')
+            # CHANGED: to save entire model... debugging
+            torch.save(model_rn, 'EMODB-bestModel.pt')
         print('-' * 10)
     # Print total time of training + testing
     time_elapsed = time.time() - since
