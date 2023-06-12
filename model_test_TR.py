@@ -24,15 +24,7 @@ from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 import os
 from sklearn.utils.multiclass import type_of_target
 
-# --------------------- 1. Define functions ---------------------
-def get_accuracy(outputs, labels):
-    _, predicted = torch.max(outputs, 1)
-    correct = (predicted == labels).sum().item()
-    total = labels.size(0)
-    accuracy = correct/total
-    return accuracy
-
-# --------------------- 2. Load data & model ---------------------
+# --------------------- 1. Load data & model ---------------------
 # Load test dataset
 batch_size = 32
 test_transforms = transforms.Compose([
@@ -53,7 +45,7 @@ print(f'device = {device}')
 model.to(device)
 model.eval()
 
-# --------------------- 3. Pass test set ---------------------
+# --------------------- 2. Pass test set ---------------------
 predictions = []
 true_classes = []
 
@@ -67,10 +59,10 @@ with torch.no_grad():
         predictions.append(preds.cpu().numpy())
         true_classes.append(labels.cpu().numpy())
 
-accuracy = get_accuracy(outputs, labels)
-print(f'The test accuracy is: {accuracy*100:.2f}%')
+# accuracy = get_accuracy(outputs, labels)
+# print(f'The test accuracy is: {accuracy*100:.2f}%')
 
-# --------------------- 4. Confusion matrix output ---------------------
+# --------------------- 3. Confusion matrix output ---------------------
 # ensure predictions and true_classes in correct format
 y_pred = np.concatenate(
     (predictions[0], predictions[1],
@@ -83,13 +75,24 @@ y_true = np.concatenate(
 cm = confusion_matrix(y_true, y_pred)
 print(cm)
 
+# Calc and print acc
+acc = np.mean(y_true == y_pred)
+print(f'Accuracy across test set: {acc*100:.2f}')
+
+# Check ordering of class labels
+class_to_idx = test_dataset.class_to_idx
+print(class_to_idx)
+
 # Change the name of class labels to english variants
-# classes = []
+classes = ['Fear', 'Disgust', 'Happy', 'Bored', 'Neutral', 'Sad', 'Angry']
 
 # save confusion matrix figure as SVG format!
-cm_display = ConfusionMatrixDisplay(cm)
+cm_display = ConfusionMatrixDisplay(cm, display_labels=classes)
 cm_display.plot(cmap=plt.cm.Blues)
 plt.title("EMODB Test Classification")
+plt.tight_layout()
+plt.savefig(f'TEST_CM_FIG.svg',
+    format='svg', dpi=1200)
 plt.show()
 
 
