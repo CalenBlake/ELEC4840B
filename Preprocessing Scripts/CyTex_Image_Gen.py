@@ -25,80 +25,37 @@ from scipy.ndimage import gaussian_filter, laplace
 from sklearn import preprocessing
 import csv
 
-# Define functions for normalization, pitch detection and Fourier
-def scale(X):
-    X = (((X - X.min()) / (X.max() - X.min())) * (1 - (-1))) + (-1)
-    return X
-
-# def detect_pitch(y, sr, t):
-#   index = magnitudes[:, t].argmax()
-#   pitch = pitches[index, t]
-#   return pitch
-
-def fft2(img0):
-    fft_input = np.fft.fft2 (img0)
-    fft_input = np.absolute(fft_input)
-    return fft_input
-
-
-"""
-os.getcwd() returns the following value:
-'C:\\Users\\c3283313\\PycharmProjects\\ELEC4840B-Programming'
-"""
-
-
+# os.getcwd()
 dataset_dir = '/Users/c3283313/PycharmProjects/ELEC4840B-Programming/EMODB Database/'
 output_dir = '/Users/c3283313/PycharmProjects/ELEC4840B-Programming/EMODB Database/RGB_IMG_noOverlap/'
+# dataset_dir = 'C:/Users/Calen Blake/Documents/University Work/2023-Semester1/ELEC4840B/EMODB Database/'
+# output_dir = 'C:/Users/Calen Blake/Documents/University Work/2023-Semester1/ELEC4840B/EMODB Database/DemoTestOutput/'
 
 list_of_files=[]
 Labels=[]
-# ***emotion list inst -> what does l stand for?
-t_l = []
-n_l = []
 f_l = []
-a_l = []
-w_l = []
-l_l = []
-e_l = []
-t = f = a = w = 0
-n = e = l = 0
-history = []
-
-# ***emotion list inst -> what does h stand for?
-# These lists ARE redundant, can be removed
-t_h = []
-n_h = []
-f_h = []
-a_h = []
-w_h = []
-l_h = []
-e_h = []
-
-# def save_hist(pitch_hist, emo):
-#     with open('/home/ali/pitch_hist_{}.csv'.format(emo), 'w') as f:
-#         write = csv.writer(f)
-#         write.writerows(pitch_hist)
-
+t = f = a = w = n = e = l = 0
 
 cnt = 0
 # Change current working directory
 os.chdir(dataset_dir+'wav/')
-# glob module is used to retrieve files/pathnames matching a specified pattern
-# Allows for the use of the "*" wildcard
+# glob allows for the use of the "*" wildcard
 # read and append all wav files to a list
 for file in glob.glob("*.wav"):
     list_of_files.append(file)
 Emo_Dict={'W':1,'L':2,'E':3,'A':4,'F':5,'T':6,'N':0}
 Speaker_Dict={'03':1,'08':2,'09':3,'10':4,'11':5,'12':6,'13':7,'14':8,'15':9,'16':10}
 
-
+# major loop for cycling through each of the files
 for i in range(len(list_of_files)):
     Temp=[]
     print(i)
     Input_filename=list_of_files[i]
     filename = dataset_dir + '/wav/' + Input_filename
-    signal, sr = librosa.load(filename)
 
+    # load signal via librosa
+    signal, sr = librosa.load(filename)
+    # resample signal at rate of 16kHz
     new_sr = 16000
     signal = librosa.resample(signal, sr, new_sr)
 
@@ -107,6 +64,7 @@ for i in range(len(list_of_files)):
     f_mag = []
     IMG = []
 
+    # Divide the input signal into frame lengths
     for jj in range(1, 1 + int(len(signal) / new_sr)):
         step = 16000 * jj
         if jj == 1:
@@ -116,20 +74,20 @@ for i in range(len(list_of_files)):
             st = 1
             # overlap = n_step/new_sr = n_step/16000 (%)
             n_step = 0
+        # each second has 16000 samples
         m_frame = signal[step - 16000 - n_step: st * step + n_step, ]
+        # note that 160 = 16000/100 => 10ms window... change param to change frame width
         for j in range(1, 1 + int(len(m_frame) / 160)):
-            step = j * 160  # With the sampling rate of 16khz, 160 samples represent a 10ms frame
+            step = j * 160
+            # With the sampling rate of 16khz, 160 samples represent a 10ms frame
             frame = signal[step - 160: step, ]
+            # Used to find fundamental frequency, commonly used for pitch extraction
             pitches, magnitudes = librosa.core.piptrack(y=frame, sr=new_sr, fmin=40.0, fmax=600.0)
-            # %%
-            # Select the maximum value between two sterio channel
+
+            # Convert stereo signal to mono via selecting the maximum of both channels
             mag_m = magnitudes.max(1)
             pitch_m = pitches.max(1)
-            # %%
-            # If we would like to find the indices of the maximum frequencies correspond to the magnitudes above a pre-defined threshold (0.5)
-            #    index = [i for i,v in enumerate(mag_m) if v > 0.5]
 
-            # %%
             # Find the index of the maximum frequency correspond to the magnitudes above a pre-defind thereshold
             index = mag_m.argmax()
             # %%
@@ -144,15 +102,17 @@ for i in range(len(list_of_files)):
                 f_mag.append(mag_m)
                 f_l.append([pitch_m, mag_max, Input_filename[5]])
 
-                NOR = (
-                    math.ceil(160.0 / (new_sr / pitch_m)))  # Number Of Rows each speech frame construct in the final image
+                # NumRows for each speech frame (10ms) in the final image
+                NOR = (math.ceil(160.0 / (new_sr / pitch_m)))
+                # Encode start and end pixel
                 for itt in range(NOR):
                     start_p = itt * int(new_sr / pitch_m)
                     if itt < max(range(NOR)):
                         end_p = (itt + 1) * int(new_sr / pitch_m)
                     else:
                         end_p = 160
-                    frames = frame[start_p:end_p]  # * (itt+1)
+                    # Fill data in between start and end pixels
+                    frames = frame[start_p:end_p]
                     IMG.append(frames)
 
         IMG_temp = np.array(IMG)
@@ -165,34 +125,33 @@ for i in range(len(list_of_files)):
             for jt in range(len(IMG[it])):
                 IMG_F[it][jt] = IMG[it][jt]
 
+        # convert list to matrix
         IMG_F = np.array(IMG_F)
-
+        # normalize pixel values
         IMG_F = IMG_F - np.min(IMG_F)
         IMG_F = (IMG_F / np.max(IMG_F))
-
+        # adjust contrast via raised index
         IMG_F = np.power(IMG_F, 3)
         img0 = IMG_F
-        fd_img1 = gaussian_filter(img0, sigma=3)
 
-        sd_img1 = laplace(img0)
+        # fd_img1 = gaussian_filter(img0, sigma=3)
+        # sd_img1 = laplace(img0)
+        # sd_img = np.gradient(img0, 2)
+
+        # return 1 and 2 order gradients
         fd_img = np.gradient(img0)
 
-        sd_img = np.gradient(img0, 2)
-
-        # %%
-
         img = np.zeros([len(img0), 400, 3], dtype='uint8')
+        # map pixel values to [0, 255]
         img[:, :, 0] = img0 * 255
         img[:, :, 1] = fd_img[0] * 255
         img[:, :, 2] = fd_img[1] * 255
 
-        # img = make_lupton_rgb(img0, fd_img[0], fd_img[1], stretch=0.5)
-
         img = Image.fromarray(img, 'RGB')
-
         newsize = (400, 400)
         img = img.resize(newsize)
         cnt += 1
+
         if Input_filename[5] == 'T':
             img.save(output_dir + 'T/image{}.png'.format(t))
             t += 1

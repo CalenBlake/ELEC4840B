@@ -84,12 +84,10 @@ for i in range(len(list_of_files)):
             step = j * 160
             # With the sampling rate of 16khz, 160 samples represent a 10ms frame
             frame = signal[step - 160: step, ]
-            # *** SEARCH PIPTRACK DOCUMENTATION
             # Used to find fundamental frequency, commonly used for pitch extraction
             pitches, magnitudes = librosa.core.piptrack(y=frame, sr=new_sr, fmin=40.0, fmax=600.0)
 
             # Convert stereo signal to mono via selecting the maximum of both channels
-            # *** CHECK THAT RAVDESS IS IN STEREO FORMAT
             mag_m = magnitudes.max(1)
             pitch_m = pitches.max(1)
 
