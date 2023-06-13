@@ -239,7 +239,6 @@ def test_model(model):
 # e.) Employ stratified k-fold splitting and loop
 k = 5
 # set list of labels/targets and dummy var x
-# ***CHECK: y should be identical for train and test datasets due to the same loading procedure and organisation
 y = train_dataset_imf.targets
 x = np.zeros(len(y))
 # alter random_state to alter results or make reproducible
@@ -402,27 +401,4 @@ plt.show()
 model = model_rn
 load_file = f'rn50 saved params - EMODB/model_params_12-04__15-48.pt'
 model.load_state_dict(torch.load(load_file))
-
-# --------------------- 5. Test Model & Visualize Results ---------------------
-predictions = []
-true_classes = []
-# a.) Pass test data through the trained model %%%%%%%%%%
-model.eval()
-with torch.no_grad():
-    for images, labels in test_loader:
-        inputs = inputs.to(device)
-        labels = labels.to(device)
-        outputs = model(inputs)
-        _, preds = torch.max(outputs, 1)
-        predictions.append(preds.cpu().numpy())
-        true_classes.append(labels.cpu().numpy())
-
-predictions = np.concatenate(predictions)
-true_classes = np.concatenate(true_classes)
-
-# b.) Plot confusion matrix to visualize acc on each class %%%%%%%%%%
-# cm = confusion_matrix(true_classes, predictions, labels=test_dataset.classes)
-# disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=test_dataset.classes)
-# disp.plot()
-# plt.show()
 """
